@@ -19,12 +19,14 @@ final class ThoughtCaptureModel {
     var pendingThoughtCount: Int
 
     private let repository: any ThoughtRepository
+    private let returnScheduler: ReturnScheduler?
     private let clock: ClockClient
     private let uuidGenerator: UUIDGenerator
     private let logger: LoggerClient
 
     init(
         repository: any ThoughtRepository,
+        returnScheduler: ReturnScheduler? = nil,
         clock: ClockClient,
         uuidGenerator: UUIDGenerator,
         logger: LoggerClient,
@@ -38,6 +40,7 @@ final class ThoughtCaptureModel {
         let now = clock.now()
 
         self.repository = repository
+        self.returnScheduler = returnScheduler
         self.clock = clock
         self.uuidGenerator = uuidGenerator
         self.logger = logger
@@ -112,6 +115,7 @@ final class ThoughtCaptureModel {
             )
 
             try await repository.createThought(thought, schedule: schedule)
+            await scheduleReturn(schedule)
             text = ""
             customReturnDate = now.addingTimeInterval(86_400)
             saveState = .saved
@@ -121,6 +125,17 @@ final class ThoughtCaptureModel {
             validationMessage = "Не удалось сохранить мысль. Попробуйте ещё раз."
             logger.error(
                 "Thought creation failed",
+                metadata: ["errorType": String(describing: type(of: error))]
+            )
+        }
+    }
+
+    private func scheduleReturn(_ schedule: ReturnSchedule) async {
+        do {
+            try await returnScheduler?.schedule(schedule)
+        } catch {
+            logger.error(
+                "Return scheduling failed",
                 metadata: ["errorType": String(describing: type(of: error))]
             )
         }

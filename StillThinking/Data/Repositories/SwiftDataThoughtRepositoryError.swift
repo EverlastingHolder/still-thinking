@@ -9,4 +9,5 @@ import Foundation
 
 enum SwiftDataThoughtRepositoryError: Error, Equatable, Sendable {
     case thoughtNotFound(UUID)
+    case scheduleNotFound(UUID)
 }

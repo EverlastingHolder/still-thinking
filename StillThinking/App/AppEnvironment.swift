@@ -13,6 +13,7 @@ struct AppEnvironment {
     let uuidGenerator: UUIDGenerator
     let loggerFactory: LoggerFactory
     let thoughtRepository: any ThoughtRepository
+    let returnScheduler: ReturnScheduler
 
     @MainActor
     static func production(processInfo: ProcessInfo = .processInfo) throws -> AppEnvironment {
@@ -30,12 +31,19 @@ struct AppEnvironment {
             context: ModelContext(container),
             logger: loggerFactory.makeLogger(for: .database)
         )
+        let scheduler = ReturnScheduler(
+            repository: repository,
+            notificationClient: LocalNotificationClient.live(),
+            clock: .live,
+            logger: loggerFactory.makeLogger(for: .scheduling)
+        )
 
         return AppEnvironment(
             clock: .live,
             uuidGenerator: .live,
             loggerFactory: loggerFactory,
-            thoughtRepository: repository
+            thoughtRepository: repository,
+            returnScheduler: scheduler
         )
     }
 }

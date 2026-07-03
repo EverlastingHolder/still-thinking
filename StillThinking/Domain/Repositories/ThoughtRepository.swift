@@ -16,5 +16,7 @@ protocol ThoughtRepository {
     func deleteThought(id: UUID) async throws
     func addReflection(_ reflection: Reflection) async throws
     func reflections(for thoughtID: UUID) async throws -> [Reflection]
+    func updateSchedule(_ schedule: ReturnSchedule) async throws
     func schedules(for thoughtID: UUID) async throws -> [ReturnSchedule]
+    func schedules(state: ReturnScheduleState, dueOnOrBefore date: Date) async throws -> [ReturnSchedule]
 }
