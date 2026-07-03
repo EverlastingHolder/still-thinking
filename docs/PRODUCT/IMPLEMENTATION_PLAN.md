@@ -90,11 +90,11 @@ Debug-only экран переключения каналов можно реа�
 
 ## Exit criteria
 
-- [ ] Есть один понятный composition path от App к feature.
-- [ ] System effects можно подменять.
-- [ ] Каналы логирования фильтруются до вывода.
-- [ ] Feature и repository не создают OSLog logger напрямую.
-- [ ] Нет неиспользуемых слоёв и пустых протоколов.
+- [x] Есть один понятный composition path от App к feature.
+- [x] System effects можно подменять.
+- [x] Каналы логирования фильтруются до вывода.
+- [x] Feature и repository не создают OSLog logger напрямую.
+- [x] Нет неиспользуемых слоёв и пустых протоколов.
 
 ---
 
