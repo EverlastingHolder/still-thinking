@@ -54,6 +54,25 @@ struct SwiftDataThoughtRepositoryTests {
         #expect(reflections == [firstReflection, secondReflection])
     }
 
+    @Test("Возвращает мысли по статусу")
+    func fetchesThoughtsByStatus() async throws {
+        let repository = try makeRepository()
+        let pendingThought = makeThought()
+        let returnedThought = try pendingThought.transitioning(
+            to: .returned,
+            at: Date(timeIntervalSinceReferenceDate: 20)
+        )
+
+        try await repository.createThought(pendingThought, schedule: nil)
+        try await repository.updateThought(returnedThought)
+
+        let pendingThoughts = try await repository.thoughts(with: .pending)
+        let returnedThoughts = try await repository.thoughts(with: .returned)
+
+        #expect(pendingThoughts.isEmpty)
+        #expect(returnedThoughts == [returnedThought])
+    }
+
     @Test("Обновляет статус мысли")
     func updatesThoughtStatus() async throws {
         let repository = try makeRepository()

@@ -9,9 +9,20 @@ import SwiftUI
 
 struct RootView: View {
     let environment: AppEnvironment
+    @State private var thoughtCaptureModel: ThoughtCaptureModel
+
+    @MainActor
+    init(environment: AppEnvironment) {
+        self.environment = environment
+        _thoughtCaptureModel = State(
+            initialValue: AppCompositionRoot.makeThoughtCaptureModel(environment: environment)
+        )
+    }
 
     var body: some View {
-        Text("Still Thinking")
+        NavigationStack {
+            ThoughtCaptureView(model: thoughtCaptureModel)
+        }
             .onAppear {
                 environment.loggerFactory
                     .makeLogger(for: .app)

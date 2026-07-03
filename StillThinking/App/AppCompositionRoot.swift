@@ -12,4 +12,14 @@ enum AppCompositionRoot {
     static func makeRootView(environment: AppEnvironment) -> RootView {
         RootView(environment: environment)
     }
+
+    @MainActor
+    static func makeThoughtCaptureModel(environment: AppEnvironment) -> ThoughtCaptureModel {
+        ThoughtCaptureModel(
+            repository: environment.thoughtRepository,
+            clock: environment.clock,
+            uuidGenerator: environment.uuidGenerator,
+            logger: environment.loggerFactory.makeLogger(for: .featureThoughtCapture)
+        )
+    }
 }

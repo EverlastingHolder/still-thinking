@@ -11,6 +11,7 @@ import Foundation
 protocol ThoughtRepository {
     func createThought(_ thought: Thought, schedule: ReturnSchedule?) async throws
     func thought(id: UUID) async throws -> Thought?
+    func thoughts(with status: ThoughtStatus) async throws -> [Thought]
     func updateThought(_ thought: Thought) async throws
     func deleteThought(id: UUID) async throws
     func addReflection(_ reflection: Reflection) async throws
