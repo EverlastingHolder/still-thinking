@@ -41,6 +41,7 @@ opt_in_rules:
   - implicit_return
   - last_where
   - modifier_order
+  - number_separator
   - operator_usage_whitespace
   - overridden_super_call
   - pattern_matching_keywords
