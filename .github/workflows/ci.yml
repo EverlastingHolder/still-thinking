@@ -151,6 +151,8 @@ jobs:
         run: |
           xcrun simctl list devices available
           xcrun simctl getenv "$SIMULATOR_UDID" SIMULATOR_UDID || true
+          xcrun simctl boot "$SIMULATOR_UDID" || true
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
 
       - name: Запустить Swift Testing
         run: |
@@ -161,6 +163,10 @@ jobs:
             -configuration "$CONFIGURATION" \
             -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
             -destination-timeout 120 \
+            -parallel-testing-enabled NO \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 60 \
+            -maximum-test-execution-time-allowance 120 \
             -derivedDataPath "$RUNNER_TEMP/StillThinkingTests" \
             -resultBundlePath "$RUNNER_TEMP/StillThinkingTests.xcresult" \
             -only-testing:StillThinkingTests \
