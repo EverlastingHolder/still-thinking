@@ -17,6 +17,7 @@ enum AppCompositionRoot {
     static func makeThoughtCaptureModel(environment: AppEnvironment) -> ThoughtCaptureModel {
         ThoughtCaptureModel(
             repository: environment.thoughtRepository,
+            returnScheduler: environment.returnScheduler,
             clock: environment.clock,
             uuidGenerator: environment.uuidGenerator,
             logger: environment.loggerFactory.makeLogger(for: .featureThoughtCapture)

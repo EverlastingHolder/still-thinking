@@ -17,12 +17,20 @@ extension ThoughtCaptureModel {
     ) -> ThoughtCaptureModel {
         let loggerFactory = LoggerFactory(configuration: .disabled, sink: NoOpLogSink())
         let container = PreviewModelContainerFactory.makeContainer()
+        let repository = SwiftDataThoughtRepository(
+            context: ModelContext(container),
+            logger: loggerFactory.makeLogger(for: .database)
+        )
+        let scheduler = ReturnScheduler(
+            repository: repository,
+            notificationClient: .denied,
+            clock: .fixed(Date(timeIntervalSinceReferenceDate: 0)),
+            logger: loggerFactory.makeLogger(for: .scheduling)
+        )
 
         return ThoughtCaptureModel(
-            repository: SwiftDataThoughtRepository(
-                context: ModelContext(container),
-                logger: loggerFactory.makeLogger(for: .database)
-            ),
+            repository: repository,
+            returnScheduler: scheduler,
             clock: .fixed(Date(timeIntervalSinceReferenceDate: 0)),
             uuidGenerator: .fixed(UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))),
             logger: loggerFactory.makeLogger(for: .featureThoughtCapture),

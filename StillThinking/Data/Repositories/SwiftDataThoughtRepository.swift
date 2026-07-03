@@ -96,6 +96,15 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         return try context.fetch(descriptor).map(ReflectionRecordMapper.makeDomain(from:))
     }
 
+    func updateSchedule(_ schedule: ReturnSchedule) async throws {
+        guard let record = try fetchScheduleRecord(id: schedule.id) else {
+            throw SwiftDataThoughtRepositoryError.scheduleNotFound(schedule.id)
+        }
+
+        ReturnScheduleRecordMapper.update(record, with: schedule)
+        try save(operation: "updateSchedule", metadata: ["state": schedule.state.rawValue])
+    }
+
     func schedules(for thoughtID: UUID) async throws -> [ReturnSchedule] {
         var descriptor = FetchDescriptor<ReturnScheduleRecord>(
             predicate: #Predicate { record in
@@ -108,8 +117,41 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         return try context.fetch(descriptor).map(ReturnScheduleRecordMapper.makeDomain(from:))
     }
 
+    func schedules(state: ReturnScheduleState, dueOnOrBefore date: Date) async throws -> [ReturnSchedule] {
+        let stateRawValue = state.rawValue
+        var descriptor = FetchDescriptor<ReturnScheduleRecord>(
+            predicate: #Predicate { record in
+                record.stateRawValue == stateRawValue
+            },
+            sortBy: [SortDescriptor(\.dueAt)]
+        )
+        descriptor.includePendingChanges = true
+
+        return try context.fetch(descriptor)
+            .map(ReturnScheduleRecordMapper.makeDomain(from:))
+            .filter { schedule in
+                guard let dueAt = schedule.dueAt else {
+                    return false
+                }
+
+                return dueAt <= date
+            }
+    }
+
     private func fetchThoughtRecord(id: UUID) throws -> ThoughtRecord? {
         var descriptor = FetchDescriptor<ThoughtRecord>(
+            predicate: #Predicate { record in
+                record.id == id
+            }
+        )
+        descriptor.fetchLimit = 1
+        descriptor.includePendingChanges = true
+
+        return try context.fetch(descriptor).first
+    }
+
+    private func fetchScheduleRecord(id: UUID) throws -> ReturnScheduleRecord? {
+        var descriptor = FetchDescriptor<ReturnScheduleRecord>(
             predicate: #Predicate { record in
                 record.id == id
             }

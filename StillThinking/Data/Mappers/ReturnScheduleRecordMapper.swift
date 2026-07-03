@@ -19,6 +19,15 @@ enum ReturnScheduleRecordMapper {
         )
     }
 
+    static func update(_ record: ReturnScheduleRecord, with schedule: ReturnSchedule) {
+        record.thoughtID = schedule.thoughtID
+        record.dueAt = schedule.dueAt
+        record.stateRawValue = schedule.state.rawValue
+        record.notificationIdentifier = schedule.notificationIdentifier
+        record.createdAt = schedule.createdAt
+        record.updatedAt = schedule.updatedAt
+    }
+
     static func makeDomain(from record: ReturnScheduleRecord) throws -> ReturnSchedule {
         guard let state = ReturnScheduleState(rawValue: record.stateRawValue) else {
             throw PersistenceMappingError.unknownReturnScheduleState(record.stateRawValue)
