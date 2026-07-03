@@ -22,6 +22,7 @@ env:
   PROJECT: StillThinking.xcodeproj
   SCHEME: StillThinking
   CONFIGURATION: Debug
+  TEST_DESTINATION: platform=iOS Simulator,name=iPhone 17,OS=latest
 
 jobs:
   swiftlint:
@@ -72,22 +73,6 @@ jobs:
 
           xcodebuild -list -project "$PROJECT"
 
-      - name: Выбрать доступный iPhone Simulator
-        run: |
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available --json |
-              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
-          )"
-
-          if [[ -z "$SIMULATOR_UDID" ]]; then
-            echo "Не найден доступный iPhone Simulator."
-            xcrun simctl list devices available
-            exit 1
-          fi
-
-          echo "Выбран Simulator: $SIMULATOR_UDID"
-          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
-
       - name: Собрать приложение
         run: |
           set -o pipefail
@@ -95,7 +80,7 @@ jobs:
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath "$RUNNER_TEMP/StillThinkingBuild" \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
@@ -130,27 +115,6 @@ jobs:
 
           xcodebuild -list -project "$PROJECT"
 
-      - name: Выбрать доступный iPhone Simulator
-        run: |
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available --json |
-              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
-          )"
-
-          if [[ -z "$SIMULATOR_UDID" ]]; then
-            echo "Не найден доступный iPhone Simulator."
-            xcrun simctl list devices available
-            exit 1
-          fi
-
-          echo "Выбран Simulator: $SIMULATOR_UDID"
-          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
-
-      - name: Диагностировать выбранный Simulator
-        run: |
-          xcrun simctl list devices available
-          xcrun simctl getenv "$SIMULATOR_UDID" SIMULATOR_UDID || true
-
       - name: Запустить Swift Testing
         run: |
           set -o pipefail
@@ -158,8 +122,12 @@ jobs:
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination "$TEST_DESTINATION" \
             -destination-timeout 120 \
+            -parallel-testing-enabled NO \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 60 \
+            -maximum-test-execution-time-allowance 120 \
             -derivedDataPath "$RUNNER_TEMP/StillThinkingTests" \
             -resultBundlePath "$RUNNER_TEMP/StillThinkingTests.xcresult" \
             -only-testing:StillThinkingTests \

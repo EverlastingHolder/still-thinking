@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct StillThinkingApp: App {
+    private let environment = AppEnvironment.production()
+
     var body: some Scene {
         WindowGroup {
-            Text("test")
+            AppCompositionRoot.makeRootView(environment: environment)
         }
     }
 }
