@@ -39,6 +39,7 @@ docs/
 ├── ARCHITECTURE/
 │   └── PROJECT_STRUCTURE.md
 ├── TECHNICAL/
+│   ├── LOGGING.md
 │   └── TECHNICAL_RULES.md
 └── PRODUCT/
     ├── FEATURES.md
