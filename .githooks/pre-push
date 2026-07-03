@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+protected_branches="^(master|develop)$"
+allowed_work_branches="^(feature|fix|refactor|test|chore|docs|release|hotfix)/.+$"
+zero_sha="0000000000000000000000000000000000000000"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ -z "${local_ref:-}" ]] && continue
+
+  if [[ "$remote_ref" != refs/heads/* ]]; then
+    continue
+  fi
+
+  remote_branch="${remote_ref#refs/heads/}"
+  local_branch="${local_ref#refs/heads/}"
+
+  if [[ "$remote_branch" =~ $protected_branches ]]; then
+    echo "pre-push: прямой push в '$remote_branch' запрещён." >&2
+    echo "Изменения должны попадать в '$remote_branch' только через Pull Request." >&2
+    exit 1
+  fi
+
+  if [[ "$local_ref" == refs/heads/* && ! "$local_branch" =~ $allowed_work_branches ]]; then
+    echo "pre-push: ветка '$local_branch' не соответствует Git Flow проекта." >&2
+    echo "Допустимые префиксы: feature/, fix/, refactor/, test/, chore/, docs/, release/, hotfix/." >&2
+    exit 1
+  fi
+
+  if [[ "$remote_sha" != "$zero_sha" && "$local_sha" != "$zero_sha" ]]; then
+    if ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
+      echo "pre-push: push в '$remote_branch' не является fast-forward." >&2
+      echo "Force push и переписывание опубликованной истории запрещены." >&2
+      exit 1
+    fi
+  fi
+done

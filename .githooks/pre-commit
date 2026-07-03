@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+protected_branches="^(master|develop)$"
+branch_name="$(git branch --show-current 2>/dev/null || true)"
+
+if [[ "$branch_name" =~ $protected_branches ]]; then
+  echo "pre-commit: прямые commit в ветку '$branch_name' запрещены." >&2
+  echo "Создай рабочую ветку от develop и открой Pull Request." >&2
+  exit 1
+fi
+
+if ! git diff --cached --check; then
+  echo "pre-commit: staged diff содержит whitespace-ошибки." >&2
+  exit 1
+fi
+
+blocked_paths="$(
+  git diff --cached --name-only --diff-filter=ACMR |
+    grep -E '(^|/)(DerivedData|xcuserdata|UserInterfaceState\.xcuserstate|\.DS_Store)$|\.xcuserstate$' || true
+)"
+
+if [[ -n "$blocked_paths" ]]; then
+  echo "pre-commit: staged diff содержит локальные или generated-файлы:" >&2
+  echo "$blocked_paths" >&2
+  exit 1
+fi
+
+swift_files="$(
+  git diff --cached --name-only --diff-filter=ACMR |
+    grep -E '\.swift$' || true
+)"
+
+if [[ -n "$swift_files" ]]; then
+  if ! command -v swiftlint >/dev/null 2>&1; then
+    echo "pre-commit: swiftlint не найден, SwiftLint пропущен." >&2
+    exit 0
+  fi
+
+  swiftlint lint --strict
+fi
