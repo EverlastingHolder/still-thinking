@@ -123,6 +123,31 @@ Swift Testing
 
 До появления CI нельзя указывать несуществующие required checks: это заблокирует merge всех PR.
 
+## Локальные Git hooks
+
+В репозитории есть tracked hooks в `.githooks/`.
+
+Включить их в локальном clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+`pre-commit` проверяет:
+
+- запрет commit напрямую в `master` и `develop`;
+- whitespace-ошибки в staged diff;
+- отсутствие staged `DerivedData`, `.DS_Store`, `xcuserdata` и `.xcuserstate`;
+- SwiftLint для staged Swift-файлов, если `swiftlint` установлен.
+
+`pre-push` проверяет:
+
+- запрет push в `master` и `develop`;
+- запрет non-fast-forward push;
+- соответствие рабочих веток префиксам Git Flow.
+
+Hooks не заменяют GitHub Rulesets. Они дают раннюю локальную ошибку, а серверные rulesets остаются обязательной защитой репозитория.
+
 ## Approval policy
 
 Пока в репозитории один разработчик:
