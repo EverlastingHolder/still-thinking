@@ -29,6 +29,7 @@
 5. Проверь текущий этап в `docs/PRODUCT/IMPLEMENTATION_PLAN.md`.
 6. Проверь, существует ли feature в `docs/PRODUCT/FEATURES.md`.
 7. Проверь архитектурные границы в `docs/ARCHITECTURE/PROJECT_STRUCTURE.md`.
+8. Если задача затрагивает логи, каналы или debug configuration, прочитай `docs/TECHNICAL/LOGGING.md`.
 
 Не создавай второй паттерн, если в проекте уже есть подходящее решение.
 
@@ -56,6 +57,7 @@
 - Не скрывай ошибки и не подавляй Swift 6 diagnostics без обоснования.
 - Сохраняй cancellation и actor isolation.
 - Не добавляй зависимость или новый инфраструктурный слой без решения пользователя.
+- Не добавляй `print`, `debugPrint` или прямой `OSLog.Logger` вне logging infrastructure.
 
 ## 5. Самопроверка
 
@@ -64,6 +66,8 @@
 - корректность empty/loading/error/content states;
 - optional и error handling;
 - отсутствие приватного текста в логах;
+- возможность отключить новый шумный log channel;
+- отсутствие повторного логирования одной ошибки на каждом слое;
 - локализацию пользовательских строк;
 - accessibility labels, Dynamic Type и tap targets;
 - отсутствие test/preview data в production flow;
@@ -78,13 +82,15 @@
 3. Swift Testing.
 4. Preview через Xcode MCP/Canvas.
 5. Ручной сценарий в Simulator.
-6. Финальный `git diff`.
+6. Для logging-изменений — проверить включение и отключение каналов через Debug configuration.
+7. Финальный `git diff`.
 
 Подробности находятся в:
 
 - `docs/WORKFLOW/TESTING.md`;
 - `docs/WORKFLOW/XCODE_VALIDATION.md`;
-- `docs/WORKFLOW/TOOLING.md`.
+- `docs/WORKFLOW/TOOLING.md`;
+- `docs/TECHNICAL/LOGGING.md`.
 
 ## 7. Definition of Done
 
@@ -100,6 +106,7 @@
 - [ ] Preview обновлены и проверены, если применимо;
 - [ ] пользовательский сценарий проверен в Simulator, если применимо;
 - [ ] приватные данные не попали в логи или артефакты;
+- [ ] новые logs используют scoped channel и могут быть отфильтрованы;
 - [ ] документация обновлена, если изменились правила или поведение;
 - [ ] итоговый отчёт перечисляет только фактически выполненные проверки.
 
@@ -118,6 +125,7 @@
 - Swift Testing — passed / failed / not run
 - Preview — просмотренные состояния или причина отсутствия проверки
 - Simulator — пройденный сценарий и destination
+- Logging — проверенные каналы/уровни, если применимо
 
 ## Ограничения и риски
 Что не удалось проверить, TODO и решения пользователя.
