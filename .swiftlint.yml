@@ -1,0 +1,134 @@
+# SwiftLint запускается из корня репозитория.
+# Правила подобраны для Swift 6, SwiftUI и feature-oriented структуры проекта.
+
+strict: true
+allow_zero_lintable_files: false
+check_for_updates: false
+reporter: xcode
+
+included:
+  - StillThinking
+  - StillThinkingTests
+
+excluded:
+  - StillThinkingUITests
+  - .build
+  - DerivedData
+  - build
+  - .swiftpm
+  - Packages
+  - vendor
+
+opt_in_rules:
+  - array_init
+  - attributes
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - discouraged_optional_boolean
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fatal_error_message
+  - file_name
+  - file_name_no_space
+  - first_where
+  - force_unwrapping
+  - identical_operands
+  - implicit_return
+  - last_where
+  - modifier_order
+  - operator_usage_whitespace
+  - overridden_super_call
+  - pattern_matching_keywords
+  - prohibited_super_call
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+  ignores_interpolated_strings: true
+
+file_length:
+  warning: 500
+  error: 700
+  ignore_comment_only_lines: true
+
+function_body_length:
+  warning: 60
+  error: 100
+
+type_body_length:
+  warning: 300
+  error: 450
+
+cyclomatic_complexity:
+  warning: 10
+  error: 15
+
+function_parameter_count:
+  warning: 6
+  error: 8
+
+large_tuple:
+  warning: 3
+  error: 4
+
+nesting:
+  type_level: 2
+  function_level: 3
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 50
+    error: 60
+  excluded:
+    - id
+    - x
+    - y
+
+number_separator:
+  minimum_length: 5
+
+trailing_whitespace:
+  ignores_empty_lines: false
+  ignores_comments: false
+
+custom_rules:
+  no_print:
+    name: "Запрет прямого вывода в консоль"
+    regex: '\b(?:print|debugPrint)\s*\('
+    message: "Используйте проектный LoggerClient вместо print или debugPrint."
+    severity: error
+
+  no_xctest_import:
+    name: "Запрет XCTest в unit-тестах"
+    regex: '^\s*import\s+XCTest\b'
+    message: "Для unit- и integration-тестов используйте Swift Testing."
+    severity: error
+
+  no_unchecked_sendable:
+    name: "Запрет unchecked Sendable"
+    regex: '@unchecked\s+Sendable'
+    message: "Использование @unchecked Sendable требует отдельного согласования и документированного обоснования."
+    severity: error
+
+  no_nonisolated_unsafe:
+    name: "Запрет небезопасной изоляции"
+    regex: 'nonisolated\s*\(unsafe\)'
+    message: "Использование nonisolated(unsafe) требует отдельного согласования и документированного обоснования."
+    severity: error
