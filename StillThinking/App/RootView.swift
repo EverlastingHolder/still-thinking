@@ -21,5 +21,5 @@ struct RootView: View {
 }
 
 #Preview {
-    AppCompositionRoot.makeRootView(environment: .preview)
+    AppCompositionRoot.makeRootView(environment: .preview())
 }

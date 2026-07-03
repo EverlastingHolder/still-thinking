@@ -6,14 +6,25 @@
 //
 
 import Foundation
+import SwiftData
 
 extension AppEnvironment {
-    static let preview = AppEnvironment(
-        clock: .fixed(Date(timeIntervalSinceReferenceDate: 0)),
-        uuidGenerator: .fixed(UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))),
-        loggerFactory: LoggerFactory(
+    @MainActor
+    static func preview() -> AppEnvironment {
+        let loggerFactory = LoggerFactory(
             configuration: .disabled,
             sink: NoOpLogSink()
         )
-    )
+        let container = PreviewModelContainerFactory.makeContainer()
+
+        return AppEnvironment(
+            clock: .fixed(Date(timeIntervalSinceReferenceDate: 0)),
+            uuidGenerator: .fixed(UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))),
+            loggerFactory: loggerFactory,
+            thoughtRepository: SwiftDataThoughtRepository(
+                context: ModelContext(container),
+                logger: loggerFactory.makeLogger(for: .database)
+            )
+        )
+    }
 }
