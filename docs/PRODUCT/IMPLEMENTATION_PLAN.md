@@ -125,10 +125,10 @@ Debug-only экран переключения каналов можно реа�
 
 ## Exit criteria
 
-- [ ] Persistence не протекает в SwiftUI View.
-- [ ] Repository integration tests проходят.
-- [ ] In-memory container используется в tests/Preview.
-- [ ] Database channel можно отключить без изменения repository-кода.
+- [x] Persistence не протекает в SwiftUI View.
+- [x] Repository integration tests проходят.
+- [x] In-memory container используется в tests/Preview.
+- [x] Database channel можно отключить без изменения repository-кода.
 
 ---
 

@@ -122,8 +122,9 @@ struct LoggingInfrastructureTests {
     }
 
     @Test("Preview environment использует fixed зависимости и no-op logger")
+    @MainActor
     func previewEnvironmentUsesDeterministicDependencies() {
-        let environment = AppEnvironment.preview
+        let environment = AppEnvironment.preview()
         let logger = environment.loggerFactory.makeLogger(for: .app)
 
         logger.fault("Hidden")

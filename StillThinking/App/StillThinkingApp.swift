@@ -9,7 +9,16 @@ import SwiftUI
 
 @main
 struct StillThinkingApp: App {
-    private let environment = AppEnvironment.production()
+    private let environment: AppEnvironment
+
+    @MainActor
+    init() {
+        do {
+            environment = try AppEnvironment.production()
+        } catch {
+            fatalError("Production environment creation failed: \(error)")
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
