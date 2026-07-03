@@ -39,6 +39,19 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         return try ThoughtRecordMapper.makeDomain(from: record)
     }
 
+    func thoughts(with status: ThoughtStatus) async throws -> [Thought] {
+        let statusRawValue = status.rawValue
+        var descriptor = FetchDescriptor<ThoughtRecord>(
+            predicate: #Predicate { record in
+                record.statusRawValue == statusRawValue
+            },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.includePendingChanges = true
+
+        return try context.fetch(descriptor).map(ThoughtRecordMapper.makeDomain(from:))
+    }
+
     func updateThought(_ thought: Thought) async throws {
         guard let record = try fetchThoughtRecord(id: thought.id) else {
             throw SwiftDataThoughtRepositoryError.thoughtNotFound(thought.id)
