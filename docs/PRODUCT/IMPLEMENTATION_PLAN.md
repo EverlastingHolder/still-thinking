@@ -41,10 +41,10 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 
 ## Exit criteria
 
-- [ ] Xcode project открыт и собирается.
-- [ ] Swift Testing выполняет минимум один smoke test.
-- [ ] Shared scheme доступна `xcodebuild`.
-- [ ] SwiftLint и CI настроены.
+- [x] Xcode project открыт и собирается.
+- [x] Swift Testing выполняет минимум один smoke test.
+- [x] Shared scheme доступна `xcodebuild`.
+- [x] SwiftLint и CI настроены.
 
 ---
 

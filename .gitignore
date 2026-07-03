@@ -24,6 +24,7 @@ build/
 .build/
 .swiftpm/
 Package.resolved
+!StillThinking.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Local agent and index artifacts
 .codegraph/
