@@ -78,6 +78,17 @@
 - in-memory ModelContainer;
 - edge-case fixtures.
 
+## FND-08. Configurable logging
+
+- единая logging infrastructure поверх OSLog;
+- стабильные каналы для database, notifications и feature;
+- scoped `LoggerClient` для каждого владельца;
+- фильтрация по каналу и минимальному уровню;
+- настройка через Xcode launch arguments и environment variables;
+- recording/no-op sink для Swift Testing и Preview;
+- debug-only экран включения и отключения каналов на этапе Settings;
+- Release policy без подробного пользовательского вывода.
+
 ---
 
 # Stage 1 — Core MVP
@@ -243,7 +254,8 @@
 
 - безопасные технические логи;
 - отсутствие приватного текста;
-- понятный экспорт диагностической информации без пользовательского содержимого.
+- понятный экспорт диагностической информации без пользовательского содержимого;
+- проверенная Release logging policy.
 
 ---
 
