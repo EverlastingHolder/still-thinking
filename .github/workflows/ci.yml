@@ -146,10 +146,10 @@ jobs:
           echo "Выбран Simulator: $SIMULATOR_UDID"
           echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
 
-      - name: Подготовить Simulator к тестам
+      - name: Диагностировать выбранный Simulator
         run: |
-          xcrun simctl boot "$SIMULATOR_UDID" || true
-          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          xcrun simctl list devices available
+          xcrun simctl getenv "$SIMULATOR_UDID" SIMULATOR_UDID || true
 
       - name: Запустить Swift Testing
         run: |
