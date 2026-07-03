@@ -57,20 +57,43 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 1. Создать каталоги по `PROJECT_STRUCTURE.md` без пустой избыточной иерархии.
 2. Добавить `AppEnvironment` и composition root.
 3. Добавить `Clock` и UUID dependency.
-4. Создать безопасный logger interface.
-5. Создать PreviewSupport и TestSupport только для первых реальных doubles.
-6. Подготовить AppRouter, если первый flow требует навигации.
+4. Реализовать минимальную logging infrastructure по `docs/TECHNICAL/LOGGING.md`:
+   - стабильный `LogChannel`;
+   - `LogLevel`;
+   - scoped `LoggerClient`;
+   - `LoggerFactory`;
+   - production sink поверх OSLog;
+   - no-op/recording sink для tests и Preview.
+5. Добавить parsing Debug-конфигурации каналов и уровня из launch arguments/environment variables.
+6. Создать PreviewSupport и TestSupport только для первых реальных doubles.
+7. Подготовить AppRouter, если первый flow требует навигации.
+
+Debug-only экран переключения каналов можно реализовать позже вместе с Settings, но архитектура не должна блокировать runtime configuration.
 
 ## Проверка
 
 - зависимости создаются в composition root;
 - feature не использует service locator;
-- fake Clock используется в smoke test и Preview.
+- fake Clock используется в smoke test и Preview;
+- database/feature logger можно независимо включить и отключить конфигурацией;
+- отключённый канал не передаёт событие sink;
+- Preview использует no-op/recording logger и не создаёт шум в консоли.
+
+## Тесты logging infrastructure
+
+- enabled channel передаёт событие;
+- disabled channel не вызывает sink;
+- minimum level фильтрует событие;
+- launch arguments имеют приоритет над environment configuration;
+- неизвестное имя канала не вызывает crash;
+- no-op/recording sink не использует OSLog.
 
 ## Exit criteria
 
 - [ ] Есть один понятный composition path от App к feature.
 - [ ] System effects можно подменять.
+- [ ] Каналы логирования фильтруются до вывода.
+- [ ] Feature и repository не создают OSLog logger напрямую.
 - [ ] Нет неиспользуемых слоёв и пустых протоколов.
 
 ---
@@ -89,6 +112,7 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 6. Реализовать in-memory container для tests и Preview.
 7. Определить delete rules для связанных сущностей.
 8. Зафиксировать первую schema version.
+9. Добавить безопасные database logs без пользовательского текста.
 
 ## Тесты
 
@@ -104,6 +128,7 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 - [ ] Persistence не протекает в SwiftUI View.
 - [ ] Repository integration tests проходят.
 - [ ] In-memory container используется в tests/Preview.
+- [ ] Database channel можно отключить без изменения repository-кода.
 
 ---
 
@@ -255,6 +280,11 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 6. Скрытие чувствительного состояния при background, если согласовано.
 7. Удаление одной мысли.
 8. Полное удаление данных с подтверждением.
+9. Добавить `Settings → Developer → Logging` только для Debug:
+   - toggles каналов;
+   - minimum level;
+   - enable all/disable all/reset;
+   - отображение активного источника конфигурации.
 
 ## Тесты
 
@@ -262,13 +292,16 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 - pause/resume scheduling;
 - изменение notification settings пересобирает pending requests;
 - полное удаление очищает связанные данные;
-- ошибки удаления обрабатываются безопасно.
+- ошибки удаления обрабатываются безопасно;
+- debug logging toggles обновляют configuration store;
+- Developer Logging отсутствует в Release.
 
 ## Exit criteria
 
 - [ ] Приватный контент не раскрывается по умолчанию.
 - [ ] Блокировка не делает данные недоступными без понятного fallback.
 - [ ] Пользователь может удалить данные.
+- [ ] Каналы можно быстро переключать в Debug build.
 
 ---
 
@@ -305,9 +338,10 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 3. Проверка смены таймзоны и системного времени.
 4. Migration tests.
 5. Privacy audit логов и уведомлений.
-6. Полный regression checklist.
-7. TestFlight configuration.
-8. Release notes и известные ограничения.
+6. Проверить Release logging policy: подробные debug/info события отключены, launch arguments не открывают production verbosity.
+7. Полный regression checklist.
+8. TestFlight configuration.
+9. Release notes и известные ограничения.
 
 ## Exit criteria
 
@@ -316,6 +350,7 @@ Feature ID соответствуют `docs/PRODUCT/FEATURES.md`.
 - [ ] Full test target проходит.
 - [ ] Основные сценарии вручную проверены.
 - [ ] Нет известных privacy/blocking defects.
+- [ ] Release logging policy проверена.
 - [ ] Build готов к ограниченному TestFlight.
 
 ---
