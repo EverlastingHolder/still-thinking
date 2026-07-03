@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+  push:
+    branches:
+      - develop
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: StillThinking.xcodeproj
+  SCHEME: StillThinking
+  CONFIGURATION: Debug
+
+jobs:
+  swiftlint:
+    name: SwiftLint
+    runs-on: macos-26
+    timeout-minutes: 15
+
+    steps:
+      - name: Получить исходный код
+        uses: actions/checkout@v7
+
+      - name: Установить SwiftLint
+        run: |
+          if ! command -v swiftlint >/dev/null 2>&1; then
+            brew install swiftlint
+          fi
+
+          swiftlint version
+
+      - name: Проверить код
+        run: swiftlint lint --strict --config .swiftlint.yml
+
+  build:
+    name: Сборка для Simulator
+    runs-on: macos-26
+    timeout-minutes: 20
+
+    steps:
+      - name: Получить исходный код
+        uses: actions/checkout@v7
+
+      - name: Подготовить Xcode
+        run: |
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          swift --version
+
+      - name: Подготовить формат проекта для runner
+        run: |
+          PROJECT_FILE="$PROJECT/project.pbxproj"
+
+          # Проект создан Xcode 27, которого пока нет на GitHub-hosted runner.
+          # Xcode 27 сохраняет совместимое предпочтительное значение 77,
+          # поэтому в CI временно используем его как objectVersion.
+          if grep -q 'objectVersion = 110;' "$PROJECT_FILE"; then
+            sed -i '' 's/objectVersion = 110;/objectVersion = 77;/' "$PROJECT_FILE"
+          fi
+
+          xcodebuild -list -project "$PROJECT"
+
+      - name: Выбрать доступный iPhone Simulator
+        run: |
+          SIMULATOR_UDID="$(
+            xcrun simctl list devices available --json |
+              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
+          )"
+
+          if [[ -z "$SIMULATOR_UDID" ]]; then
+            echo "Не найден доступный iPhone Simulator."
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          echo "Выбран Simulator: $SIMULATOR_UDID"
+          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
+
+      - name: Собрать приложение
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/StillThinkingBuild" \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_VERSION=6.0 \
+            SWIFT_STRICT_CONCURRENCY=complete
+
+  tests:
+    name: Swift Testing
+    runs-on: macos-26
+    timeout-minutes: 25
+
+    steps:
+      - name: Получить исходный код
+        uses: actions/checkout@v7
+
+      - name: Подготовить Xcode
+        run: |
+          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          swift --version
+
+      - name: Подготовить формат проекта для runner
+        run: |
+          PROJECT_FILE="$PROJECT/project.pbxproj"
+
+          # Проект создан Xcode 27, которого пока нет на GitHub-hosted runner.
+          # Xcode 27 сохраняет совместимое предпочтительное значение 77,
+          # поэтому в CI временно используем его как objectVersion.
+          if grep -q 'objectVersion = 110;' "$PROJECT_FILE"; then
+            sed -i '' 's/objectVersion = 110;/objectVersion = 77;/' "$PROJECT_FILE"
+          fi
+
+          xcodebuild -list -project "$PROJECT"
+
+      - name: Выбрать доступный iPhone Simulator
+        run: |
+          SIMULATOR_UDID="$(
+            xcrun simctl list devices available --json |
+              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
+          )"
+
+          if [[ -z "$SIMULATOR_UDID" ]]; then
+            echo "Не найден доступный iPhone Simulator."
+            xcrun simctl list devices available
+            exit 1
+          fi
+
+          echo "Выбран Simulator: $SIMULATOR_UDID"
+          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
+
+      - name: Запустить Swift Testing
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/StillThinkingTests" \
+            -resultBundlePath "$RUNNER_TEMP/StillThinkingTests.xcresult" \
+            -only-testing:StillThinkingTests \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_VERSION=6.0 \
+            SWIFT_STRICT_CONCURRENCY=complete
