@@ -96,6 +96,36 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         return try context.fetch(descriptor).map(ReflectionRecordMapper.makeDomain(from:))
     }
 
+    func recordReflection(
+        _ reflection: Reflection,
+        updatedThought: Thought,
+        nextSchedule: ReturnSchedule?
+    ) async throws {
+        guard let thoughtRecord = try fetchThoughtRecord(id: updatedThought.id) else {
+            throw SwiftDataThoughtRepositoryError.thoughtNotFound(updatedThought.id)
+        }
+
+        ThoughtRecordMapper.update(thoughtRecord, with: updatedThought)
+
+        let reflectionRecord = ReflectionRecordMapper.makeRecord(from: reflection, thought: thoughtRecord)
+        thoughtRecord.reflections.append(reflectionRecord)
+        context.insert(reflectionRecord)
+
+        if let nextSchedule {
+            let scheduleRecord = ReturnScheduleRecordMapper.makeRecord(from: nextSchedule, thought: thoughtRecord)
+            thoughtRecord.schedules.append(scheduleRecord)
+            context.insert(scheduleRecord)
+        }
+
+        try save(
+            operation: "recordReflection",
+            metadata: [
+                "status": updatedThought.status.rawValue,
+                "hasNextSchedule": String(nextSchedule != nil)
+            ]
+        )
+    }
+
     func updateSchedule(_ schedule: ReturnSchedule) async throws {
         guard let record = try fetchScheduleRecord(id: schedule.id) else {
             throw SwiftDataThoughtRepositoryError.scheduleNotFound(schedule.id)
