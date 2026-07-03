@@ -72,22 +72,6 @@ jobs:
 
           xcodebuild -list -project "$PROJECT"
 
-      - name: Выбрать доступный iPhone Simulator
-        run: |
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available --json |
-              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
-          )"
-
-          if [[ -z "$SIMULATOR_UDID" ]]; then
-            echo "Не найден доступный iPhone Simulator."
-            xcrun simctl list devices available
-            exit 1
-          fi
-
-          echo "Выбран Simulator: $SIMULATOR_UDID"
-          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
-
       - name: Собрать приложение
         run: |
           set -o pipefail
@@ -95,7 +79,7 @@ jobs:
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath "$RUNNER_TEMP/StillThinkingBuild" \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
@@ -132,14 +116,31 @@ jobs:
 
       - name: Выбрать доступный iPhone Simulator
         run: |
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available --json |
-              jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty'
-          )"
+          DEVICES_JSON="$RUNNER_TEMP/simulators.json"
+          xcrun simctl list devices available --json > "$DEVICES_JSON" &
+          SIMCTL_PID="$!"
+
+          for _ in {1..60}; do
+            if ! kill -0 "$SIMCTL_PID" 2>/dev/null; then
+              break
+            fi
+
+            sleep 1
+          done
+
+          if kill -0 "$SIMCTL_PID" 2>/dev/null; then
+            echo "simctl не вернул список Simulator за 60 секунд."
+            kill "$SIMCTL_PID" 2>/dev/null || true
+            exit 1
+          fi
+
+          wait "$SIMCTL_PID"
+
+          SIMULATOR_UDID="$(jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty' "$DEVICES_JSON")"
 
           if [[ -z "$SIMULATOR_UDID" ]]; then
             echo "Не найден доступный iPhone Simulator."
-            xcrun simctl list devices available
+            cat "$DEVICES_JSON"
             exit 1
           fi
 
