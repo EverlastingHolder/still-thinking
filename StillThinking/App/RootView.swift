@@ -11,6 +11,7 @@ struct RootView: View {
     let environment: AppEnvironment
     @State private var thoughtCaptureModel: ThoughtCaptureModel
     @State private var todayReflectionModel: TodayReflectionModel
+    @State private var archiveModel: ArchiveModel
 
     @MainActor
     init(environment: AppEnvironment) {
@@ -20,6 +21,9 @@ struct RootView: View {
         )
         _todayReflectionModel = State(
             initialValue: AppCompositionRoot.makeTodayReflectionModel(environment: environment)
+        )
+        _archiveModel = State(
+            initialValue: AppCompositionRoot.makeArchiveModel(environment: environment)
         )
     }
 
@@ -37,6 +41,21 @@ struct RootView: View {
             }
             .tabItem {
                 Label("Сегодня", systemImage: "calendar")
+            }
+
+            NavigationStack {
+                ArchiveView(
+                    model: archiveModel,
+                    makeTimelineModel: { thoughtID in
+                        AppCompositionRoot.makeThoughtTimelineModel(
+                            thoughtID: thoughtID,
+                            environment: environment
+                        )
+                    }
+                )
+            }
+            .tabItem {
+                Label("Архив", systemImage: "archivebox")
             }
         }
             .onAppear {

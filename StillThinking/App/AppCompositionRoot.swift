@@ -40,4 +40,32 @@ enum AppCompositionRoot {
             logger: environment.loggerFactory.makeLogger(for: .featureToday)
         )
     }
+
+    @MainActor
+    static func makeArchiveModel(environment: AppEnvironment) -> ArchiveModel {
+        ArchiveModel(
+            useCase: makeArchiveUseCase(environment: environment),
+            logger: environment.loggerFactory.makeLogger(for: .featureArchive)
+        )
+    }
+
+    @MainActor
+    static func makeThoughtTimelineModel(
+        thoughtID: UUID,
+        environment: AppEnvironment
+    ) -> ThoughtTimelineModel {
+        ThoughtTimelineModel(
+            thoughtID: thoughtID,
+            useCase: makeArchiveUseCase(environment: environment),
+            logger: environment.loggerFactory.makeLogger(for: .featureArchive)
+        )
+    }
+
+    @MainActor
+    private static func makeArchiveUseCase(environment: AppEnvironment) -> ArchiveUseCase {
+        ArchiveUseCase(
+            repository: environment.thoughtRepository,
+            logger: environment.loggerFactory.makeLogger(for: .featureArchive)
+        )
+    }
 }
