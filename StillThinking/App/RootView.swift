@@ -10,6 +10,7 @@ import SwiftUI
 struct RootView: View {
     let environment: AppEnvironment
     @State private var thoughtCaptureModel: ThoughtCaptureModel
+    @State private var todayReflectionModel: TodayReflectionModel
 
     @MainActor
     init(environment: AppEnvironment) {
@@ -17,11 +18,26 @@ struct RootView: View {
         _thoughtCaptureModel = State(
             initialValue: AppCompositionRoot.makeThoughtCaptureModel(environment: environment)
         )
+        _todayReflectionModel = State(
+            initialValue: AppCompositionRoot.makeTodayReflectionModel(environment: environment)
+        )
     }
 
     var body: some View {
-        NavigationStack {
-            ThoughtCaptureView(model: thoughtCaptureModel)
+        TabView {
+            NavigationStack {
+                ThoughtCaptureView(model: thoughtCaptureModel)
+            }
+            .tabItem {
+                Label("Запись", systemImage: "square.and.pencil")
+            }
+
+            NavigationStack {
+                TodayReflectionView(model: todayReflectionModel)
+            }
+            .tabItem {
+                Label("Сегодня", systemImage: "calendar")
+            }
         }
             .onAppear {
                 environment.loggerFactory

@@ -23,4 +23,21 @@ enum AppCompositionRoot {
             logger: environment.loggerFactory.makeLogger(for: .featureThoughtCapture)
         )
     }
+
+    @MainActor
+    static func makeTodayReflectionModel(environment: AppEnvironment) -> TodayReflectionModel {
+        let useCase = TodayReflectionUseCase(
+            repository: environment.thoughtRepository,
+            returnScheduler: environment.returnScheduler,
+            clock: environment.clock,
+            uuidGenerator: environment.uuidGenerator,
+            logger: environment.loggerFactory.makeLogger(for: .featureReflection)
+        )
+
+        return TodayReflectionModel(
+            useCase: useCase,
+            clock: environment.clock,
+            logger: environment.loggerFactory.makeLogger(for: .featureToday)
+        )
+    }
 }
