@@ -76,6 +76,12 @@ CLI-команды `xcodebuild` и `simctl` остаются обязатель�
 - Менять deployment target, архитектурные границы, persistence-схему или публичные контракты без отдельного решения.
 - Коммитить секреты, signing credentials, пользовательские данные, DerivedData и локальные настройки Xcode.
 
+## Logging
+
+- Все постоянные логи проходят через проектный `LoggerClient`; `print`, `debugPrint` и прямое создание `OSLog.Logger` внутри feature/data/services запрещены.
+- Logger должен быть scoped к стабильному каналу, который можно включить или отключить конфигурацией.
+- Для изменений logging infrastructure, каналов, уровней или debug toggles обязательно прочитай `docs/TECHNICAL/LOGGING.md`.
+
 ## Git flow
 
 - `master` — стабильная release-ветка.
