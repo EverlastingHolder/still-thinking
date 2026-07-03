@@ -14,6 +14,7 @@
 
 - UI, Preview, Xcode или Simulator: [`WORKFLOW/XCODE_VALIDATION.md`](WORKFLOW/XCODE_VALIDATION.md)
 - Unit/integration-тесты и исправление дефектов: [`WORKFLOW/TESTING.md`](WORKFLOW/TESTING.md)
+- Логирование, каналы, уровни и фильтрация консоли: [`TECHNICAL/LOGGING.md`](TECHNICAL/LOGGING.md)
 - Новая продуктовая функция: [`PRODUCT/FEATURES.md`](PRODUCT/FEATURES.md)
 - Выбор следующего этапа реализации: [`PRODUCT/IMPLEMENTATION_PLAN.md`](PRODUCT/IMPLEMENTATION_PLAN.md)
 - Настройка и обслуживание Codex: [`CODEX_SETUP.md`](CODEX_SETUP.md)
