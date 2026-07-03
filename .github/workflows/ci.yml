@@ -146,6 +146,11 @@ jobs:
           echo "Выбран Simulator: $SIMULATOR_UDID"
           echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
 
+      - name: Подготовить Simulator к тестам
+        run: |
+          xcrun simctl boot "$SIMULATOR_UDID" || true
+          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+
       - name: Запустить Swift Testing
         run: |
           set -o pipefail
@@ -154,6 +159,7 @@ jobs:
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
             -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination-timeout 120 \
             -derivedDataPath "$RUNNER_TEMP/StillThinkingTests" \
             -resultBundlePath "$RUNNER_TEMP/StillThinkingTests.xcresult" \
             -only-testing:StillThinkingTests \
