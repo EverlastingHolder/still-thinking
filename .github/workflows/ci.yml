@@ -22,6 +22,7 @@ env:
   PROJECT: StillThinking.xcodeproj
   SCHEME: StillThinking
   CONFIGURATION: Debug
+  TEST_DESTINATION: platform=iOS Simulator,name=iPhone 17,OS=latest
 
 jobs:
   swiftlint:
@@ -114,45 +115,6 @@ jobs:
 
           xcodebuild -list -project "$PROJECT"
 
-      - name: Выбрать доступный iPhone Simulator
-        run: |
-          DEVICES_JSON="$RUNNER_TEMP/simulators.json"
-          xcrun simctl list devices available --json > "$DEVICES_JSON" &
-          SIMCTL_PID="$!"
-
-          for _ in {1..60}; do
-            if ! kill -0 "$SIMCTL_PID" 2>/dev/null; then
-              break
-            fi
-
-            sleep 1
-          done
-
-          if kill -0 "$SIMCTL_PID" 2>/dev/null; then
-            echo "simctl не вернул список Simulator за 60 секунд."
-            kill "$SIMCTL_PID" 2>/dev/null || true
-            exit 1
-          fi
-
-          wait "$SIMCTL_PID"
-
-          SIMULATOR_UDID="$(jq -r '[.devices[][] | select(.isAvailable == true and (.name | startswith("iPhone")))] | first | .udid // empty' "$DEVICES_JSON")"
-
-          if [[ -z "$SIMULATOR_UDID" ]]; then
-            echo "Не найден доступный iPhone Simulator."
-            cat "$DEVICES_JSON"
-            exit 1
-          fi
-
-          echo "Выбран Simulator: $SIMULATOR_UDID"
-          echo "SIMULATOR_UDID=$SIMULATOR_UDID" >> "$GITHUB_ENV"
-
-      - name: Диагностировать выбранный Simulator
-        run: |
-          xcrun simctl list devices available
-          xcrun simctl getenv "$SIMULATOR_UDID" SIMULATOR_UDID || true
-          xcrun simctl boot "$SIMULATOR_UDID" || true
-
       - name: Запустить Swift Testing
         run: |
           set -o pipefail
@@ -160,7 +122,7 @@ jobs:
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
-            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -destination "$TEST_DESTINATION" \
             -destination-timeout 120 \
             -parallel-testing-enabled NO \
             -test-timeouts-enabled YES \
