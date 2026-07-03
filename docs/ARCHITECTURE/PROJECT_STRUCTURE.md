@@ -185,6 +185,45 @@ Services/Notifications/
 
 Protocol/Client должен отражать нужды приложения, а не копировать весь Apple API.
 
+### Logging
+
+Logging infrastructure располагается только в `Services/Logging`:
+
+```text
+Services/Logging/
+├── LogChannel.swift
+├── LogLevel.swift
+├── LogConfiguration.swift
+├── LoggerClient.swift
+├── LoggerFactory.swift
+└── OSLogSink.swift
+```
+
+При появлении runtime toggles допускаются:
+
+```text
+Services/Logging/
+├── LogConfigurationStore.swift
+├── LogConfigurationParser.swift
+└── DebugLogPreferences.swift
+
+Features/Settings/DeveloperLogging/
+├── DeveloperLoggingView.swift
+└── DeveloperLoggingModel.swift
+```
+
+Правила:
+
+- feature и repository получают scoped `LoggerClient` через composition root;
+- `OSLog.Logger` создаётся только внутри logging infrastructure;
+- `LogChannel` содержит стабильные каналы подсистем и feature;
+- configuration parser знает launch arguments/environment variables, но не бизнес-логику;
+- debug UI меняет configuration store, а не создаёт отдельные logger instances;
+- tests и Preview используют recording/no-op sink;
+- подробные правила находятся в `docs/TECHNICAL/LOGGING.md`.
+
+Не создавать все logging-файлы заранее. Минимальный набор добавляется вместе с первой реальной интеграцией.
+
 ## DesignSystem
 
 В DesignSystem помещается только действительно переиспользуемый UI.
@@ -203,6 +242,7 @@ Protocol/Client должен отражать нужды приложения, �
 - фиксированный Clock;
 - in-memory ModelContainer factory;
 - fake notification/authentication clients;
+- no-op/recording logger;
 - наборы данных для длинного текста и edge states.
 
 PreviewSupport не содержит production business logic и не импортируется release-кодом вне `#if DEBUG`, если это требуется конфигурацией target.
@@ -214,6 +254,7 @@ PreviewSupport не содержит production business logic и не импо�
 ```text
 StillThinkingTests/Domain/Scheduling/ReturnSchedulerTests.swift
 StillThinkingTests/Data/SwiftDataThoughtRepositoryTests.swift
+StillThinkingTests/Services/Logging/LogConfigurationTests.swift
 StillThinkingTests/Features/ThoughtCapture/ThoughtCaptureModelTests.swift
 ```
 
