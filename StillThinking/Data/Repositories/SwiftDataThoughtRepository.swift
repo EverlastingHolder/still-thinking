@@ -70,6 +70,13 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         try save(operation: "deleteThought")
     }
 
+    func deleteAllData() async throws {
+        try deleteRecords(try context.fetch(FetchDescriptor<ThoughtRecord>()))
+        try deleteRecords(try context.fetch(FetchDescriptor<ReflectionRecord>()))
+        try deleteRecords(try context.fetch(FetchDescriptor<ReturnScheduleRecord>()))
+        try save(operation: "deleteAllData")
+    }
+
     func addReflection(_ reflection: Reflection) async throws {
         guard let thoughtRecord = try fetchThoughtRecord(id: reflection.thoughtID) else {
             throw SwiftDataThoughtRepositoryError.thoughtNotFound(reflection.thoughtID)
@@ -147,6 +154,19 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         return try context.fetch(descriptor).map(ReturnScheduleRecordMapper.makeDomain(from:))
     }
 
+    func schedules(with state: ReturnScheduleState) async throws -> [ReturnSchedule] {
+        let stateRawValue = state.rawValue
+        var descriptor = FetchDescriptor<ReturnScheduleRecord>(
+            predicate: #Predicate { record in
+                record.stateRawValue == stateRawValue
+            },
+            sortBy: [SortDescriptor(\.createdAt)]
+        )
+        descriptor.includePendingChanges = true
+
+        return try context.fetch(descriptor).map(ReturnScheduleRecordMapper.makeDomain(from:))
+    }
+
     func schedules(state: ReturnScheduleState, dueOnOrBefore date: Date) async throws -> [ReturnSchedule] {
         let stateRawValue = state.rawValue
         var descriptor = FetchDescriptor<ReturnScheduleRecord>(
@@ -190,6 +210,12 @@ final class SwiftDataThoughtRepository: ThoughtRepository {
         descriptor.includePendingChanges = true
 
         return try context.fetch(descriptor).first
+    }
+
+    private func deleteRecords<T: PersistentModel>(_ records: [T]) throws {
+        for record in records {
+            context.delete(record)
+        }
     }
 
     private func save(operation: String, metadata: [String: String] = [:]) throws {

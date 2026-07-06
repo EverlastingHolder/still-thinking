@@ -12,6 +12,10 @@ struct RootView: View {
     @State private var thoughtCaptureModel: ThoughtCaptureModel
     @State private var todayReflectionModel: TodayReflectionModel
     @State private var archiveModel: ArchiveModel
+    @State private var settingsModel: SettingsModel
+    @State private var privacyLockModel: PrivacyLockModel
+    @Environment(\.scenePhase)
+    private var scenePhase
 
     @MainActor
     init(environment: AppEnvironment) {
@@ -24,6 +28,12 @@ struct RootView: View {
         )
         _archiveModel = State(
             initialValue: AppCompositionRoot.makeArchiveModel(environment: environment)
+        )
+        _settingsModel = State(
+            initialValue: AppCompositionRoot.makeSettingsModel(environment: environment)
+        )
+        _privacyLockModel = State(
+            initialValue: AppCompositionRoot.makePrivacyLockModel(environment: environment)
         )
     }
 
@@ -57,12 +67,36 @@ struct RootView: View {
             .tabItem {
                 Label("Архив", systemImage: "archivebox")
             }
-        }
-            .onAppear {
-                environment.loggerFactory
-                    .makeLogger(for: .app)
-                    .info("Root view appeared")
+
+            NavigationStack {
+                SettingsView(
+                    model: settingsModel,
+                    privacyLockModel: privacyLockModel,
+                    logConfigurationSource: environment.logConfigurationSource,
+                    makeDeveloperLoggingModel: {
+                        AppCompositionRoot.makeDeveloperLoggingModel(environment: environment)
+                    }
+                )
             }
+            .tabItem {
+                Label("Настройки", systemImage: "gearshape")
+            }
+        }
+        .overlay {
+            if privacyLockModel.state == .locked || privacyLockModel.state == .failed {
+                PrivacyShieldView(model: privacyLockModel)
+            }
+        }
+        .onAppear {
+            environment.loggerFactory
+                .makeLogger(for: .app)
+                .info("Root view appeared")
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                privacyLockModel.lockIfNeeded()
+            }
+        }
     }
 }
 

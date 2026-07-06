@@ -20,9 +20,12 @@ extension AppEnvironment {
             context: ModelContext(container),
             logger: loggerFactory.makeLogger(for: .database)
         )
+        let settingsStore = AppSettingsStore()
+        let debugLogPreferencesStore = DebugLogPreferencesStore()
         let scheduler = ReturnScheduler(
             repository: repository,
             notificationClient: .denied,
+            settingsStore: settingsStore,
             clock: .fixed(Date(timeIntervalSinceReferenceDate: 0)),
             logger: loggerFactory.makeLogger(for: .scheduling)
         )
@@ -32,7 +35,11 @@ extension AppEnvironment {
             uuidGenerator: .fixed(UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1))),
             loggerFactory: loggerFactory,
             thoughtRepository: repository,
-            returnScheduler: scheduler
+            returnScheduler: scheduler,
+            settingsStore: settingsStore,
+            authenticationClient: .available,
+            debugLogPreferencesStore: debugLogPreferencesStore,
+            logConfigurationSource: .projectDefault
         )
     }
 }

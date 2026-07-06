@@ -14,6 +14,7 @@ final class ThoughtTimelineModel {
     let thoughtID: UUID
     var entries: [ThoughtTimelineEntry]
     var isLoading: Bool
+    var isDeleted: Bool
     var errorMessage: String?
 
     private let useCase: ArchiveUseCase
@@ -25,6 +26,7 @@ final class ThoughtTimelineModel {
         logger: LoggerClient,
         entries: [ThoughtTimelineEntry] = [],
         isLoading: Bool = false,
+        isDeleted: Bool = false,
         errorMessage: String? = nil
     ) {
         self.thoughtID = thoughtID
@@ -32,6 +34,7 @@ final class ThoughtTimelineModel {
         self.logger = logger
         self.entries = entries
         self.isLoading = isLoading
+        self.isDeleted = isDeleted
         self.errorMessage = errorMessage
     }
 
@@ -50,5 +53,19 @@ final class ThoughtTimelineModel {
         }
 
         isLoading = false
+    }
+
+    func deleteThought() async {
+        do {
+            try await useCase.deleteThought(id: thoughtID)
+            entries = []
+            isDeleted = true
+        } catch {
+            errorMessage = "Не удалось удалить мысль."
+            logger.error(
+                "Thought deletion failed",
+                metadata: ["errorType": String(describing: type(of: error))]
+            )
+        }
     }
 }
