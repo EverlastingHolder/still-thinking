@@ -88,21 +88,54 @@ jobs:
         run: |
           set -euo pipefail
 
-          SIMULATOR_UDID="$(
-            xcrun simctl list devices available "$TEST_DEVICE_NAME" |
-              awk -F '[()]' '/^[[:space:]]+'"$TEST_DEVICE_NAME"' / { udid=$2 } END { print udid }'
+          RUNTIME_ID="$(
+            xcrun simctl list runtimes available |
+              sed -n 's/^iOS .* - \(com.apple.CoreSimulator.SimRuntime.iOS-[^ ]*\)$/\1/p' |
+              head -n 1
           )"
 
-          if [ -z "$SIMULATOR_UDID" ]; then
-            echo "Не найден доступный Simulator $TEST_DEVICE_NAME" >&2
-            xcrun simctl list devices available
+          DEVICE_TYPE_ID="$(
+            xcrun simctl list devicetypes |
+              sed -n "s/^[[:space:]]*$TEST_DEVICE_NAME (\(com.apple.CoreSimulator.SimDeviceType.*\))$/\1/p" |
+              tail -n 1
+          )"
+
+          if [ -z "$DEVICE_TYPE_ID" ]; then
+            DEVICE_TYPE_ID="$(
+              xcrun simctl list devicetypes |
+                sed -n 's/^[[:space:]]*iPhone .* (\(com.apple.CoreSimulator.SimDeviceType.iPhone.*\))$/\1/p' |
+                tail -n 1
+            )"
+          fi
+
+          if [ -z "$RUNTIME_ID" ] || [ -z "$DEVICE_TYPE_ID" ]; then
+            echo "Не удалось подобрать iOS runtime или iPhone device type" >&2
+            xcrun simctl list runtimes available
+            xcrun simctl list devicetypes
             exit 1
           fi
 
-          xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
-          xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+          SIMULATOR_UDID="$(xcrun simctl create "StillThinking CI" "$DEVICE_TYPE_ID" "$RUNTIME_ID")"
+          xcrun simctl boot "$SIMULATOR_UDID"
+
+          python3 - "$SIMULATOR_UDID" <<'PY'
+          import subprocess
+          import sys
+
+          udid = sys.argv[1]
+          try:
+              subprocess.run(
+                  ["xcrun", "simctl", "bootstatus", udid, "-b"],
+                  check=True,
+                  timeout=120,
+              )
+          except subprocess.TimeoutExpired:
+              print("Simulator boot did not finish in 120 seconds", file=sys.stderr)
+              sys.exit(1)
+          PY
 
           echo "destination=platform=iOS Simulator,id=$SIMULATOR_UDID" >> "$GITHUB_OUTPUT"
+          echo "udid=$SIMULATOR_UDID" >> "$GITHUB_OUTPUT"
 
       - name: Собрать для тестирования
         run: |
@@ -142,3 +175,7 @@ jobs:
             CI_SKIP_SWIFTLINT_BUILD_PHASE=1 \
             SWIFT_VERSION=6.0 \
             SWIFT_STRICT_CONCURRENCY=complete
+
+      - name: Удалить временный Simulator
+        if: always() && steps.simulator.outputs.udid != ''
+        run: xcrun simctl delete "${{ steps.simulator.outputs.udid }}"
