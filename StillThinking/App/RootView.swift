@@ -91,10 +91,16 @@ struct RootView: View {
             environment.loggerFactory
                 .makeLogger(for: .app)
                 .info("Root view appeared")
+            privacyLockModel.lockIfNeeded()
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background {
+            switch phase {
+            case .inactive, .background:
                 privacyLockModel.lockIfNeeded()
+            case .active:
+                break
+            @unknown default:
+                break
             }
         }
     }
