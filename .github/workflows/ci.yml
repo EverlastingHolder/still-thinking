@@ -22,7 +22,7 @@ env:
   PROJECT: StillThinking.xcodeproj
   SCHEME: StillThinking
   CONFIGURATION: Debug
-  TEST_DESTINATION: platform=iOS Simulator,name=iPhone 17,OS=latest
+  TEST_DEVICE_NAME: iPhone 17
 
 jobs:
   swiftlint:
@@ -45,50 +45,8 @@ jobs:
       - name: Проверить код
         run: swiftlint lint --strict --config .swiftlint.yml
 
-  build:
-    name: Сборка для Simulator
-    runs-on: macos-26
-    timeout-minutes: 20
-
-    steps:
-      - name: Получить исходный код
-        uses: actions/checkout@v7
-
-      - name: Подготовить Xcode
-        run: |
-          sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-          xcodebuild -version
-          swift --version
-
-      - name: Подготовить формат проекта для runner
-        run: |
-          PROJECT_FILE="$PROJECT/project.pbxproj"
-
-          # Проект создан Xcode 27, которого пока нет на GitHub-hosted runner.
-          # Xcode 27 сохраняет совместимое предпочтительное значение 77,
-          # поэтому в CI временно используем его как objectVersion.
-          if grep -q 'objectVersion = 110;' "$PROJECT_FILE"; then
-            sed -i '' 's/objectVersion = 110;/objectVersion = 77;/' "$PROJECT_FILE"
-          fi
-
-          xcodebuild -list -project "$PROJECT"
-
-      - name: Собрать приложение
-        run: |
-          set -o pipefail
-          xcodebuild build \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -configuration "$CONFIGURATION" \
-            -destination "generic/platform=iOS Simulator" \
-            -derivedDataPath "$RUNNER_TEMP/StillThinkingBuild" \
-            CODE_SIGNING_ALLOWED=NO \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_VERSION=6.0 \
-            SWIFT_STRICT_CONCURRENCY=complete
-
   tests:
-    name: Swift Testing
+    name: Сборка и Swift Testing
     runs-on: macos-26
     timeout-minutes: 25
 
@@ -102,6 +60,14 @@ jobs:
           xcodebuild -version
           swift --version
 
+      - name: Кэшировать SwiftPM пакеты
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('StillThinking.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
       - name: Подготовить формат проекта для runner
         run: |
           PROJECT_FILE="$PROJECT/project.pbxproj"
@@ -113,17 +79,90 @@ jobs:
             sed -i '' 's/objectVersion = 110;/objectVersion = 77;/' "$PROJECT_FILE"
           fi
 
-          xcodebuild -list -project "$PROJECT"
+          xcodebuild -list \
+            -project "$PROJECT" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages"
 
-      - name: Запустить Swift Testing
+      - name: Подготовить Simulator
+        id: simulator
+        run: |
+          set -euo pipefail
+
+          RUNTIME_ID="$(
+            xcrun simctl list runtimes available |
+              sed -n 's/^iOS .* - \(com.apple.CoreSimulator.SimRuntime.iOS-[^ ]*\)$/\1/p' |
+              head -n 1
+          )"
+
+          DEVICE_TYPE_ID="$(
+            xcrun simctl list devicetypes |
+              sed -n "s/^[[:space:]]*$TEST_DEVICE_NAME (\(com.apple.CoreSimulator.SimDeviceType.*\))$/\1/p" |
+              tail -n 1
+          )"
+
+          if [ -z "$DEVICE_TYPE_ID" ]; then
+            DEVICE_TYPE_ID="$(
+              xcrun simctl list devicetypes |
+                sed -n 's/^[[:space:]]*iPhone .* (\(com.apple.CoreSimulator.SimDeviceType.iPhone.*\))$/\1/p' |
+                tail -n 1
+            )"
+          fi
+
+          if [ -z "$RUNTIME_ID" ] || [ -z "$DEVICE_TYPE_ID" ]; then
+            echo "Не удалось подобрать iOS runtime или iPhone device type" >&2
+            xcrun simctl list runtimes available
+            xcrun simctl list devicetypes
+            exit 1
+          fi
+
+          SIMULATOR_UDID="$(xcrun simctl create "StillThinking CI" "$DEVICE_TYPE_ID" "$RUNTIME_ID")"
+          xcrun simctl boot "$SIMULATOR_UDID"
+
+          python3 - "$SIMULATOR_UDID" <<'PY'
+          import subprocess
+          import sys
+
+          udid = sys.argv[1]
+          try:
+              subprocess.run(
+                  ["xcrun", "simctl", "bootstatus", udid, "-b"],
+                  check=True,
+                  timeout=120,
+              )
+          except subprocess.TimeoutExpired:
+              print("Simulator boot did not finish in 120 seconds", file=sys.stderr)
+              sys.exit(1)
+          PY
+
+          echo "destination=platform=iOS Simulator,id=$SIMULATOR_UDID" >> "$GITHUB_OUTPUT"
+          echo "udid=$SIMULATOR_UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Собрать для тестирования
         run: |
           set -o pipefail
-          xcodebuild test \
+          xcodebuild build-for-testing \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
-            -destination "$TEST_DESTINATION" \
-            -destination-timeout 120 \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -derivedDataPath "$RUNNER_TEMP/StillThinkingTests" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            CI_SKIP_SWIFTLINT_BUILD_PHASE=1 \
+            SWIFT_VERSION=6.0 \
+            SWIFT_STRICT_CONCURRENCY=complete
+
+      - name: Запустить Swift Testing без повторной сборки
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -destination-timeout 30 \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
             -parallel-testing-enabled NO \
             -test-timeouts-enabled YES \
             -default-test-execution-time-allowance 60 \
@@ -133,5 +172,10 @@ jobs:
             -only-testing:StillThinkingTests \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            CI_SKIP_SWIFTLINT_BUILD_PHASE=1 \
             SWIFT_VERSION=6.0 \
             SWIFT_STRICT_CONCURRENCY=complete
+
+      - name: Удалить временный Simulator
+        if: always() && steps.simulator.outputs.udid != ''
+        run: xcrun simctl delete "${{ steps.simulator.outputs.udid }}"

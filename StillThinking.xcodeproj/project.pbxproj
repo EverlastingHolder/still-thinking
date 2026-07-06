@@ -171,6 +171,11 @@
 			name = Swiftlint;
 			shellPath = /bin/sh;
 			shellScript = (
+				"if [ \"${CI_SKIP_SWIFTLINT_BUILD_PHASE:-0}\" = \"1\" ]; then",
+				"    echo \"SwiftLint build phase skipped by CI_SKIP_SWIFTLINT_BUILD_PHASE\"",
+				"    exit 0",
+				"fi",
+				"",
 				"SWIFT_PACKAGE_DIR=\"${SWIFT_PACKAGE_DIR:-${BUILD_DIR%Build/*}SourcePackages}\"",
 				"SWIFTLINT_CMD=\"$SWIFT_PACKAGE_DIR/artifacts/swiftlintplugins/SwiftLintBinary/SwiftLintBinary.artifactbundle/macos/swiftlint\"",
 				"",
