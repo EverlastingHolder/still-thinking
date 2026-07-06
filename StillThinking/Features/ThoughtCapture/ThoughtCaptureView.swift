@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct ThoughtCaptureView: View {
     @Bindable var model: ThoughtCaptureModel
@@ -85,11 +86,84 @@ struct ThoughtCaptureView: View {
         }
         .navigationTitle("Still Thinking")
         .scrollDismissesKeyboard(.interactively)
-        .onTapGesture {
-            isTextEditorFocused = false
+        .background {
+            KeyboardDismissTapLayer {
+                isTextEditorFocused = false
+            }
         }
         .task {
             await model.loadPendingThoughtCount()
+        }
+    }
+}
+
+private struct KeyboardDismissTapLayer: UIViewRepresentable {
+    let onTap: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onTap: onTap)
+    }
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+
+        DispatchQueue.main.async {
+            context.coordinator.attach(to: view)
+        }
+
+        return view
+    }
+
+    func updateUIView(_ view: UIView, context: Context) {
+        context.coordinator.onTap = onTap
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var onTap: () -> Void
+        private weak var gestureRecognizer: UITapGestureRecognizer?
+
+        init(onTap: @escaping () -> Void) {
+            self.onTap = onTap
+        }
+
+        func attach(to view: UIView) {
+            guard gestureRecognizer == nil else {
+                return
+            }
+
+            guard let window = view.window else {
+                DispatchQueue.main.async {
+                    self.attach(to: view)
+                }
+                return
+            }
+
+            let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+            gestureRecognizer.cancelsTouchesInView = false
+            gestureRecognizer.delegate = self
+            window.addGestureRecognizer(gestureRecognizer)
+            self.gestureRecognizer = gestureRecognizer
+        }
+
+        @objc
+        private func handleTap() {
+            onTap()
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldReceive touch: UITouch
+        ) -> Bool {
+            var view = touch.view
+            while let currentView = view {
+                if currentView is UIControl || currentView is UITextView || currentView is UITextField {
+                    return false
+                }
+                view = currentView.superview
+            }
+
+            return true
         }
     }
 }

@@ -65,7 +65,14 @@ struct ArchiveView: View {
         Section {
             ForEach(model.items) { item in
                 NavigationLink {
-                    ThoughtTimelineView(model: makeTimelineModel(item.thought.id))
+                    ThoughtTimelineView(
+                        model: makeTimelineModel(item.thought.id),
+                        onDeleted: {
+                            Task {
+                                await model.load()
+                            }
+                        }
+                    )
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.thought.text)

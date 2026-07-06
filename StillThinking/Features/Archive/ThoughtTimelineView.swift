@@ -9,9 +9,18 @@ import SwiftUI
 
 struct ThoughtTimelineView: View {
     @Bindable var model: ThoughtTimelineModel
+    let onDeleted: () -> Void
     @Environment(\.dismiss)
     private var dismiss
     @State private var showsDeleteConfirmation = false
+
+    init(
+        model: ThoughtTimelineModel,
+        onDeleted: @escaping () -> Void = {}
+    ) {
+        self.model = model
+        self.onDeleted = onDeleted
+    }
 
     var body: some View {
         List {
@@ -60,6 +69,7 @@ struct ThoughtTimelineView: View {
             Button("Удалить", role: .destructive) {
                 Task {
                     await model.deleteThought()
+                    onDeleted()
                     dismiss()
                 }
             }
