@@ -39,6 +39,9 @@ struct TodayReflectionView: View {
                 await model.load()
             }
         }
+        .task(id: model.nextAutoRefreshDate) {
+            await model.waitForNextReturnAndReload()
+        }
         .refreshable {
             await model.load()
         }
