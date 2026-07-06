@@ -16,6 +16,7 @@ final class ArchiveModel {
     var searchText: String
     var isLoading: Bool
     var errorMessage: String?
+    var currentTime: Date = .now
 
     private let useCase: ArchiveUseCase
     private let logger: LoggerClient

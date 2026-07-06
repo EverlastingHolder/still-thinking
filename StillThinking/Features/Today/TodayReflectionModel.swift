@@ -19,6 +19,7 @@ final class TodayReflectionModel {
     var loadState: TodayLoadState
     var isSaving: Bool
     var validationMessage: String?
+    var nextAutoRefreshDate: Date?
 
     private let useCase: TodayReflectionUseCase
     private let clock: ClockClient
@@ -35,7 +36,8 @@ final class TodayReflectionModel {
         customReturnDate: Date? = nil,
         loadState: TodayLoadState = .idle,
         isSaving: Bool = false,
-        validationMessage: String? = nil
+        validationMessage: String? = nil,
+        nextAutoRefreshDate: Date? = nil
     ) {
         let now = clock.now()
 
@@ -50,6 +52,7 @@ final class TodayReflectionModel {
         self.loadState = loadState
         self.isSaving = isSaving
         self.validationMessage = validationMessage
+        self.nextAutoRefreshDate = nextAutoRefreshDate
     }
 
     var currentItem: TodayThoughtItem? {
@@ -65,8 +68,10 @@ final class TodayReflectionModel {
 
         do {
             items = try await useCase.loadReturnedItems()
+            nextAutoRefreshDate = try await useCase.nextScheduledReturnDate()
             loadState = items.isEmpty ? .empty : .loaded
         } catch {
+            nextAutoRefreshDate = nil
             loadState = .failed
             logger.error(
                 "Today loading failed",
@@ -133,6 +138,24 @@ final class TodayReflectionModel {
         }
 
         isSaving = false
+    }
+
+    func waitForNextReturnAndReload() async {
+        guard let nextAutoRefreshDate else {
+            return
+        }
+
+        let delay = max(nextAutoRefreshDate.timeIntervalSince(clock.now()), 0)
+        do {
+            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard Task.isCancelled == false else {
+                return
+            }
+
+            await load()
+        } catch {
+            return
+        }
     }
 
     private func resetForm() {

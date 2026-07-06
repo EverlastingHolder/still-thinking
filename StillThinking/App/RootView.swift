@@ -95,7 +95,11 @@ struct RootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
-            case .inactive, .background:
+            case .inactive:
+                if environment.systemPromptObserver.isPresentingSystemPrompt == false {
+                    privacyLockModel.lockIfNeeded()
+                }
+            case .background:
                 privacyLockModel.lockIfNeeded()
             case .active:
                 break

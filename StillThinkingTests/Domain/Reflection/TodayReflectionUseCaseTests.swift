@@ -132,6 +132,43 @@ struct TodayReflectionUseCaseTests {
         #expect(items.map(\.thought.id) == [returnedThought.id])
     }
 
+    @Test("Ближайшая дата автообновления берётся из будущих расписаний")
+    func nextScheduledReturnDateUsesNearestFutureSchedule() async throws {
+        let fixture = try makeFixture()
+        let pastThought = makePendingThought(index: 1)
+        let nearestThought = makePendingThought(index: 2)
+        let laterThought = makePendingThought(index: 3)
+
+        try await fixture.repository.createThought(
+            pastThought,
+            schedule: makeScheduledSchedule(
+                idIndex: 1,
+                thoughtID: pastThought.id,
+                dueAt: Date(timeIntervalSinceReferenceDate: 90)
+            )
+        )
+        try await fixture.repository.createThought(
+            nearestThought,
+            schedule: makeScheduledSchedule(
+                idIndex: 2,
+                thoughtID: nearestThought.id,
+                dueAt: Date(timeIntervalSinceReferenceDate: 120)
+            )
+        )
+        try await fixture.repository.createThought(
+            laterThought,
+            schedule: makeScheduledSchedule(
+                idIndex: 3,
+                thoughtID: laterThought.id,
+                dueAt: Date(timeIntervalSinceReferenceDate: 300)
+            )
+        )
+
+        let nextDate = try await fixture.useCase.nextScheduledReturnDate()
+
+        #expect(nextDate == Date(timeIntervalSinceReferenceDate: 120))
+    }
+
     private func makeFixture(
         notificationStatus: NotificationAuthorizationStatus = .denied
     ) throws -> Fixture {
@@ -185,6 +222,32 @@ struct TodayReflectionUseCaseTests {
             notificationIdentifier: nil,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             updatedAt: Date(timeIntervalSinceReferenceDate: 50)
+        )
+    }
+
+    private func makePendingThought(index: UInt8) -> Thought {
+        Thought(
+            id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, index)),
+            text: "Ожидающая мысль \(index)",
+            status: .pending,
+            createdAt: Date(timeIntervalSinceReferenceDate: 0),
+            updatedAt: Date(timeIntervalSinceReferenceDate: 0)
+        )
+    }
+
+    private func makeScheduledSchedule(
+        idIndex: UInt8,
+        thoughtID: UUID,
+        dueAt: Date
+    ) -> ReturnSchedule {
+        ReturnSchedule(
+            id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, idIndex)),
+            thoughtID: thoughtID,
+            dueAt: dueAt,
+            state: .scheduled,
+            notificationIdentifier: nil,
+            createdAt: Date(timeIntervalSinceReferenceDate: 0),
+            updatedAt: Date(timeIntervalSinceReferenceDate: 0)
         )
     }
 

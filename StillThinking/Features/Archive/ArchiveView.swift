@@ -30,17 +30,16 @@ struct ArchiveView: View {
         }
         .navigationTitle("Архив")
         .searchable(text: $model.searchText, prompt: "Поиск")
-        .onChange(of: model.searchText) {
-            Task {
-                await model.load()
-            }
+        .task(id: model.searchText) {
+            await model.load()
         }
-        .onChange(of: model.selectedFilter) {
-            Task {
-                await model.load()
-            }
+        .task(id: model.selectedFilter) {
+            await model.load()
         }
-        .task {
+        .onAppear {
+            model.currentTime = .now
+        }
+        .task(id: model.currentTime) {
             if model.items.isEmpty && model.searchText.isEmpty {
                 await model.load()
             }
@@ -65,7 +64,14 @@ struct ArchiveView: View {
         Section {
             ForEach(model.items) { item in
                 NavigationLink {
-                    ThoughtTimelineView(model: makeTimelineModel(item.thought.id))
+                    ThoughtTimelineView(
+                        model: makeTimelineModel(item.thought.id),
+                        onDeleted: {
+                            Task {
+                                await model.load()
+                            }
+                        }
+                    )
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.thought.text)

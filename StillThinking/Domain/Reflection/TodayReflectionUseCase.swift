@@ -56,6 +56,14 @@ final class TodayReflectionUseCase {
         }
     }
 
+    func nextScheduledReturnDate() async throws -> Date? {
+        let now = clock.now()
+        return try await repository.schedules(with: .scheduled)
+            .compactMap(\.dueAt)
+            .filter { $0 > now }
+            .min()
+    }
+
     func submitReflection(
         thoughtID: UUID,
         text: String,

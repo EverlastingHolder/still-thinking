@@ -37,8 +37,6 @@ final class ThoughtCaptureModel {
         saveState: ThoughtCaptureSaveState = .idle,
         pendingThoughtCount: Int = 0
     ) {
-        let now = clock.now()
-
         self.repository = repository
         self.returnScheduler = returnScheduler
         self.clock = clock
@@ -46,7 +44,7 @@ final class ThoughtCaptureModel {
         self.logger = logger
         self.text = text
         self.selectedPreset = selectedPreset
-        self.customReturnDate = customReturnDate ?? now.addingTimeInterval(86_400)
+        self.customReturnDate = customReturnDate ?? clock.now().addingTimeInterval(60)
         self.validationMessage = validationMessage
         self.saveState = saveState
         self.pendingThoughtCount = pendingThoughtCount
@@ -117,7 +115,7 @@ final class ThoughtCaptureModel {
             try await repository.createThought(thought, schedule: schedule)
             await scheduleReturn(schedule)
             text = ""
-            customReturnDate = now.addingTimeInterval(86_400)
+            customReturnDate = minimumCustomReturnDate
             saveState = .saved
             await loadPendingThoughtCount()
         } catch {

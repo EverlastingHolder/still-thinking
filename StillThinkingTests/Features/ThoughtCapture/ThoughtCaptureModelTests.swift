@@ -38,8 +38,17 @@ struct ThoughtCaptureModelTests {
         #expect(thought.text == "Вернуться к идее")
         #expect(schedule.dueAt == Date(timeIntervalSinceReferenceDate: 86_400))
         #expect(fixture.model.text.isEmpty)
+        #expect(fixture.model.customReturnDate == Date(timeIntervalSinceReferenceDate: 60))
         #expect(fixture.model.pendingThoughtCount == 1)
         #expect(fixture.model.saveState == .saved)
+    }
+
+    @Test("Пользовательская дата по умолчанию на минуту больше текущей")
+    func defaultCustomDateIsOneMinuteInFuture() throws {
+        let model = try makeModel(text: "")
+
+        #expect(model.customReturnDate == Date(timeIntervalSinceReferenceDate: 60))
+        #expect(model.minimumCustomReturnDate == Date(timeIntervalSinceReferenceDate: 60))
     }
 
     @Test("Пользовательская дата в прошлом отклоняется")
