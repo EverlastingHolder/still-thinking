@@ -9,11 +9,16 @@ import SwiftUI
 
 struct ThoughtTimelineView: View {
     @Bindable var model: ThoughtTimelineModel
+    @Environment(\.dismiss)
+    private var dismiss
+    @State private var showsDeleteConfirmation = false
 
     var body: some View {
         List {
             if model.isLoading {
                 ProgressView()
+            } else if model.isDeleted {
+                ContentUnavailableView("Мысль удалена", systemImage: "trash")
             } else if let errorMessage = model.errorMessage {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
@@ -40,6 +45,29 @@ struct ThoughtTimelineView: View {
             }
         }
         .navigationTitle("История")
+        .toolbar {
+            Button(role: .destructive) {
+                showsDeleteConfirmation = true
+            } label: {
+                Label("Удалить", systemImage: "trash")
+            }
+        }
+        .confirmationDialog(
+            "Удалить эту мысль?",
+            isPresented: $showsDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Удалить", role: .destructive) {
+                Task {
+                    await model.deleteThought()
+                    dismiss()
+                }
+            }
+            Button("Отмена", role: .cancel) {
+            }
+        } message: {
+            Text("Связанные ответы и расписания тоже будут удалены.")
+        }
         .task {
             if model.entries.isEmpty {
                 await model.load()

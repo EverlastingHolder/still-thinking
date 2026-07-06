@@ -11,10 +11,32 @@ struct LogConfigurationParser {
     static func configuration(
         arguments: [String],
         environment: [String: String],
-        defaultConfiguration: LogConfiguration
+        defaultConfiguration: LogConfiguration,
+        debugPreferences: LogConfiguration? = nil
     ) -> LogConfiguration {
-        let environmentConfiguration = applyEnvironment(environment, to: defaultConfiguration)
+        let baseConfiguration = debugPreferences ?? defaultConfiguration
+        let environmentConfiguration = applyEnvironment(environment, to: baseConfiguration)
         return applyArguments(arguments, to: environmentConfiguration)
+    }
+
+    static func source(
+        arguments: [String],
+        environment: [String: String],
+        debugPreferences: LogConfiguration?
+    ) -> LogConfigurationSource {
+        if argumentValues(arguments).keys.contains(where: { $0.hasPrefix("-STLog") }) {
+            return .launchArguments
+        }
+
+        if environment.keys.contains(where: { $0.hasPrefix("ST_LOG_") }) {
+            return .environment
+        }
+
+        if debugPreferences != nil {
+            return .debugPreferences
+        }
+
+        return .projectDefault
     }
 
     private static func applyEnvironment(

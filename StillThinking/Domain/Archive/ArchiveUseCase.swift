@@ -87,6 +87,11 @@ final class ArchiveUseCase {
         return entries.sorted { $0.date < $1.date }
     }
 
+    func deleteThought(id: UUID) async throws {
+        try await repository.deleteThought(id: id)
+        logger.info("Thought deleted from archive")
+    }
+
     private func matches(query: String, thought: Thought, reflections: [Reflection]) -> Bool {
         thought.text.lowercased().contains(query) ||
             reflections.contains { reflection in

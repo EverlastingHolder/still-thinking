@@ -144,10 +144,14 @@ struct ReturnSchedulerTests {
             context: ModelContext(container),
             logger: loggerFactory.makeLogger(for: .database)
         )
+        let settingsStore = AppSettingsStore()
+        settingsStore.settings.notificationStartHour = 0
+        settingsStore.settings.notificationEndHour = 24
         let notifications = RecordingNotificationClient(authorizationStatus: notificationStatus)
         let scheduler = ReturnScheduler(
             repository: repository,
             notificationClient: notifications.client,
+            settingsStore: settingsStore,
             clock: .fixed(Date(timeIntervalSinceReferenceDate: 100)),
             logger: loggerFactory.makeLogger(for: .scheduling)
         )

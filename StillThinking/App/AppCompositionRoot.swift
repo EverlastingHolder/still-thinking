@@ -62,6 +62,30 @@ enum AppCompositionRoot {
     }
 
     @MainActor
+    static func makeSettingsModel(environment: AppEnvironment) -> SettingsModel {
+        SettingsModel(
+            settingsStore: environment.settingsStore,
+            repository: environment.thoughtRepository,
+            returnScheduler: environment.returnScheduler,
+            logger: environment.loggerFactory.makeLogger(for: .featureSettings)
+        )
+    }
+
+    @MainActor
+    static func makePrivacyLockModel(environment: AppEnvironment) -> PrivacyLockModel {
+        PrivacyLockModel(
+            settingsStore: environment.settingsStore,
+            authenticationClient: environment.authenticationClient,
+            logger: environment.loggerFactory.makeLogger(for: .authentication)
+        )
+    }
+
+    @MainActor
+    static func makeDeveloperLoggingModel(environment: AppEnvironment) -> DeveloperLoggingModel {
+        DeveloperLoggingModel(store: environment.debugLogPreferencesStore)
+    }
+
+    @MainActor
     private static func makeArchiveUseCase(environment: AppEnvironment) -> ArchiveUseCase {
         ArchiveUseCase(
             repository: environment.thoughtRepository,

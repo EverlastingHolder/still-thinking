@@ -11,18 +11,24 @@ import Foundation
 final class ReturnScheduler {
     private let repository: any ThoughtRepository
     private let notificationClient: NotificationClient
+    private let settingsStore: AppSettingsStore
     private let clock: ClockClient
+    private let calendar: Calendar
     private let logger: LoggerClient
 
     init(
         repository: any ThoughtRepository,
         notificationClient: NotificationClient,
+        settingsStore: AppSettingsStore = AppSettingsStore(),
         clock: ClockClient,
+        calendar: Calendar = .current,
         logger: LoggerClient
     ) {
         self.repository = repository
         self.notificationClient = notificationClient
+        self.settingsStore = settingsStore
         self.clock = clock
+        self.calendar = calendar
         self.logger = logger
     }
 
@@ -62,7 +68,30 @@ final class ReturnScheduler {
         try await repository.updateSchedule(cancelledSchedule)
     }
 
+    func rebuildPendingNotifications() async throws {
+        let schedules = try await repository.schedules(with: .scheduled)
+
+        for schedule in schedules {
+            if let notificationIdentifier = schedule.notificationIdentifier {
+                await notificationClient.cancel([notificationIdentifier])
+            }
+
+            var updatedSchedule = schedule
+            updatedSchedule.notificationIdentifier = nil
+            updatedSchedule.updatedAt = clock.now()
+            try await repository.updateSchedule(updatedSchedule)
+            try await scheduleNotification(for: updatedSchedule)
+        }
+
+        logger.info("Pending return notifications rebuilt", metadata: ["count": String(schedules.count)])
+    }
+
     func markOverdueSchedulesReturned() async throws -> [UUID] {
+        guard settingsStore.settings.returnsPaused == false else {
+            logger.notice("Return processing skipped while returns are paused")
+            return []
+        }
+
         let now = clock.now()
         let schedules = try await repository.schedules(state: .scheduled, dueOnOrBefore: now)
         var returnedThoughtIDs: [UUID] = []
@@ -93,6 +122,12 @@ final class ReturnScheduler {
     }
 
     private func scheduleNotification(for schedule: ReturnSchedule) async throws {
+        let settings = settingsStore.settings
+        guard settings.returnsPaused == false else {
+            logger.notice("Return notification skipped while returns are paused")
+            return
+        }
+
         guard let dueAt = schedule.dueAt else {
             logger.notice("Return schedule has no exact due date")
             return
@@ -111,12 +146,15 @@ final class ReturnScheduler {
         }
 
         let identifier = schedule.id.uuidString
+        let notificationDate = settings.notificationDate(for: dueAt, calendar: calendar)
         try await notificationClient.schedule(
             NotificationScheduleRequest(
                 identifier: identifier,
-                dueAt: dueAt,
+                dueAt: notificationDate,
                 title: "Still Thinking",
-                body: "У вас есть мысль для возвращения."
+                body: settings.showsThoughtTextInNotifications
+                    ? thought.text
+                    : "У вас есть мысль для возвращения."
             )
         )
 
