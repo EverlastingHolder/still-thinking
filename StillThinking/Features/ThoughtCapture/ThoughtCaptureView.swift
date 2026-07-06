@@ -9,13 +9,26 @@ import SwiftUI
 
 struct ThoughtCaptureView: View {
     @Bindable var model: ThoughtCaptureModel
+    @FocusState private var isTextEditorFocused: Bool
 
     var body: some View {
         Form {
             Section {
-                TextEditor(text: $model.text)
-                    .frame(minHeight: 180)
-                    .accessibilityLabel("Текст мысли")
+                ZStack(alignment: .topLeading) {
+                    if model.text.isEmpty {
+                        Text("Что стоит вернуть позже?")
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 8)
+                            .allowsHitTesting(false)
+                    }
+
+                    TextEditor(text: $model.text)
+                        .focused($isTextEditorFocused)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 180)
+                        .accessibilityLabel("Текст мысли")
+                }
             } header: {
                 Text("Мысль")
             } footer: {
@@ -71,6 +84,10 @@ struct ThoughtCaptureView: View {
             }
         }
         .navigationTitle("Still Thinking")
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            isTextEditorFocused = false
+        }
         .task {
             await model.loadPendingThoughtCount()
         }

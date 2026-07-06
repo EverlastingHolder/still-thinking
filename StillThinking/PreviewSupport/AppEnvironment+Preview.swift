@@ -21,6 +21,7 @@ extension AppEnvironment {
             logger: loggerFactory.makeLogger(for: .database)
         )
         let settingsStore = AppSettingsStore()
+        let systemPromptObserver = SystemPromptObserver()
         let debugLogPreferencesStore = DebugLogPreferencesStore()
         let scheduler = ReturnScheduler(
             repository: repository,
@@ -38,6 +39,7 @@ extension AppEnvironment {
             returnScheduler: scheduler,
             settingsStore: settingsStore,
             authenticationClient: .available,
+            systemPromptObserver: systemPromptObserver,
             debugLogPreferencesStore: debugLogPreferencesStore,
             logConfigurationSource: .projectDefault
         )

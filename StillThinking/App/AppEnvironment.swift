@@ -16,6 +16,7 @@ struct AppEnvironment {
     let returnScheduler: ReturnScheduler
     let settingsStore: AppSettingsStore
     let authenticationClient: AuthenticationClient
+    let systemPromptObserver: SystemPromptObserver
     let debugLogPreferencesStore: DebugLogPreferencesStore
     let logConfigurationSource: LogConfigurationSource
 
@@ -54,9 +55,10 @@ struct AppEnvironment {
             logger: loggerFactory.makeLogger(for: .database)
         )
         let settingsStore = AppSettingsStore(defaults: .standard)
+        let systemPromptObserver = SystemPromptObserver()
         let scheduler = ReturnScheduler(
             repository: repository,
-            notificationClient: LocalNotificationClient.live(),
+            notificationClient: LocalNotificationClient.live().observed(by: systemPromptObserver),
             settingsStore: settingsStore,
             clock: .live,
             logger: loggerFactory.makeLogger(for: .scheduling)
@@ -69,9 +71,40 @@ struct AppEnvironment {
             thoughtRepository: repository,
             returnScheduler: scheduler,
             settingsStore: settingsStore,
-            authenticationClient: LocalAuthenticationClient.live(),
+            authenticationClient: LocalAuthenticationClient.live().observed(by: systemPromptObserver),
+            systemPromptObserver: systemPromptObserver,
             debugLogPreferencesStore: debugLogPreferencesStore,
             logConfigurationSource: logConfigurationSource
         )
+    }
+}
+
+private extension AuthenticationClient {
+    @MainActor
+    func observed(by observer: SystemPromptObserver) -> AuthenticationClient {
+        AuthenticationClient {
+            availability()
+        } authenticate: { reason in
+            await observer.track {
+                await authenticate(reason)
+            }
+        }
+    }
+}
+
+private extension NotificationClient {
+    @MainActor
+    func observed(by observer: SystemPromptObserver) -> NotificationClient {
+        NotificationClient {
+            await authorizationStatus()
+        } requestAuthorization: {
+            try await observer.track {
+                try await requestAuthorization()
+            }
+        } schedule: { request in
+            try await schedule(request)
+        } cancel: { identifiers in
+            await cancel(identifiers)
+        }
     }
 }
