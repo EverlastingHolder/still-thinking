@@ -12,7 +12,8 @@ enum LocalAuthenticationClient {
         AuthenticationClient {
             let context = contextFactory()
 
-            if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
+            // LAContext API остаётся unsafe из-за NSErrorPointer даже при nil.
+            if unsafe context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
                 return .available
             }
 
