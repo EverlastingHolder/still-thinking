@@ -24,74 +24,80 @@ struct SettingsView: View {
             developerSection
             #endif
         }
-        .navigationTitle("Настройки")
+        .navigationTitle("settings.navigationTitle")
         .onAppear {
             model.refreshFromStore()
         }
         .confirmationDialog(
-            "Удалить все локальные данные?",
+            "settings.delete.confirmation.title",
             isPresented: $showsDeleteAllConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Удалить всё", role: .destructive) {
+            Button("settings.delete.confirmation.confirm", role: .destructive) {
                 Task {
                     await model.deleteAllData()
                 }
             }
-            Button("Отмена", role: .cancel) {
+            Button("settings.delete.confirmation.cancel", role: .cancel) {
             }
         } message: {
-            Text("Будут удалены мысли, ответы и расписания.")
+            Text("settings.delete.confirmation.message")
         }
     }
 
     private var notificationSection: some View {
         Section {
-            Toggle("Показывать текст мысли", isOn: notificationTextBinding)
+            Toggle("settings.notifications.showThoughtText", isOn: notificationTextBinding)
 
             Stepper(
-                "С \(model.settings.notificationStartHour):00",
+                String(
+                    format: String(localized: "settings.notifications.startHour"),
+                    model.settings.notificationStartHour
+                ),
                 value: notificationStartBinding,
                 in: 0...23
             )
 
             Stepper(
-                "До \(model.settings.notificationEndHour):00",
+                String(
+                    format: String(localized: "settings.notifications.endHour"),
+                    model.settings.notificationEndHour
+                ),
                 value: notificationEndBinding,
                 in: (model.settings.notificationStartHour + 1)...24
             )
 
-            Toggle("Пауза возвращений", isOn: returnsPausedBinding)
+            Toggle("settings.notifications.pauseReturns", isOn: returnsPausedBinding)
 
             if let scheduleUpdateMessage = model.scheduleUpdateMessage {
                 Text(scheduleUpdateMessage)
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Уведомления")
+            Text("settings.section.notifications")
         } footer: {
-            Text("По умолчанию уведомления не раскрывают приватный текст.")
+            Text("settings.notifications.footer")
         }
     }
 
     private var privacySection: some View {
         Section {
-            Toggle("Локальная блокировка", isOn: privacyLockBinding)
+            Toggle("settings.privacy.localLock", isOn: privacyLockBinding)
 
             switch privacyLockModel.state {
             case .unavailable(let reason):
                 Text(reason)
                     .foregroundStyle(.secondary)
             case .failed:
-                Text("Не удалось подтвердить доступ.")
+                Text("settings.privacy.authFailed")
                     .foregroundStyle(.secondary)
             case .locked, .unlocked:
                 EmptyView()
             }
         } header: {
-            Text("Privacy")
+            Text("settings.section.privacy")
         } footer: {
-            Text("Блокировка включается вручную и использует биометрию устройства.")
+            Text("settings.privacy.footer")
         }
     }
 
@@ -103,7 +109,7 @@ struct SettingsView: View {
                 if model.isDeletingAllData {
                     ProgressView()
                 } else {
-                    Label("Удалить все данные", systemImage: "trash")
+                    Label("settings.delete.button", systemImage: "trash")
                 }
             }
             .disabled(model.isDeletingAllData)
@@ -113,7 +119,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Данные")
+            Text("settings.section.data")
         }
     }
 
@@ -126,10 +132,10 @@ struct SettingsView: View {
                     activeSource: logConfigurationSource
                 )
             } label: {
-                Label("Logging", systemImage: "ladybug")
+                Label("settings.developer.logging", systemImage: "ladybug")
             }
         } header: {
-            Text("Developer")
+            Text("settings.section.developer")
         }
     }
     #endif
