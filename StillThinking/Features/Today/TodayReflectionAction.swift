@@ -19,11 +19,11 @@ enum TodayReflectionAction: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .complete:
-            "Завершить"
+            String(localized: "today.action.complete")
         case .release:
-            "Отпустить"
+            String(localized: "today.action.release")
         case .reschedule:
-            "Отложить"
+            String(localized: "today.action.reschedule")
         }
     }
 }

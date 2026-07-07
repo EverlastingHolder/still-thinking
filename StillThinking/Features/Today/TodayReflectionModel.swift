@@ -90,13 +90,13 @@ final class TodayReflectionModel {
 
     func submitCurrentReflection() async {
         guard let currentItem else {
-            validationMessage = "Сегодня нет мыслей для ответа."
+            validationMessage = String(localized: "today.validation.noThought")
             return
         }
 
         let trimmedText = reflectionText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedText.isEmpty == false else {
-            validationMessage = "Добавьте ответ перед сохранением."
+            validationMessage = String(localized: "today.validation.emptyReflection")
             return
         }
 
@@ -108,7 +108,7 @@ final class TodayReflectionModel {
             resolution = .release
         case .reschedule:
             guard customReturnDate >= minimumCustomReturnDate else {
-                validationMessage = "Выберите дату в будущем."
+                validationMessage = String(localized: "today.validation.futureDate")
                 return
             }
 
@@ -128,9 +128,9 @@ final class TodayReflectionModel {
             resetForm()
             await load()
         } catch TodayReflectionError.invalidReflectionText {
-            validationMessage = "Добавьте ответ перед сохранением."
+            validationMessage = String(localized: "today.validation.emptyReflection")
         } catch {
-            validationMessage = "Не удалось сохранить ответ. Попробуйте ещё раз."
+            validationMessage = String(localized: "today.validation.saveFailed")
             logger.error(
                 "Reflection saving failed",
                 metadata: ["errorType": String(describing: type(of: error))]
