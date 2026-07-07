@@ -70,6 +70,7 @@ struct ThoughtCaptureView: View {
                 } label: {
                     if model.isSaving {
                         ProgressView()
+                            .accessibilityLabel(Text("common.saving"))
                     } else {
                         Label("thoughtCapture.save.button", systemImage: "tray.and.arrow.down")
                     }

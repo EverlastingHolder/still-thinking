@@ -108,6 +108,7 @@ struct SettingsView: View {
             } label: {
                 if model.isDeletingAllData {
                     ProgressView()
+                        .accessibilityLabel(Text("common.deleting"))
                 } else {
                     Label("settings.delete.button", systemImage: "trash")
                 }

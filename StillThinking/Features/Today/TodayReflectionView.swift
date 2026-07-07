@@ -16,6 +16,7 @@ struct TodayReflectionView: View {
             case .idle, .loading:
                 Section {
                     ProgressView()
+                        .accessibilityLabel(Text("common.loading"))
                 }
             case .empty:
                 emptySection
@@ -155,6 +156,7 @@ struct TodayReflectionView: View {
             } label: {
                 if model.isSaving {
                     ProgressView()
+                        .accessibilityLabel(Text("common.saving"))
                 } else {
                     Label("today.save.button", systemImage: "tray.and.arrow.down")
                 }

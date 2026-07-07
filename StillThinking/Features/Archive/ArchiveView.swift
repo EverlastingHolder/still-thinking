@@ -17,6 +17,7 @@ struct ArchiveView: View {
 
             if model.isLoading {
                 ProgressView()
+                    .accessibilityLabel(Text("common.loading"))
             } else if let errorMessage = model.errorMessage {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)

@@ -26,6 +26,7 @@ struct ThoughtTimelineView: View {
         List {
             if model.isLoading {
                 ProgressView()
+                    .accessibilityLabel(Text("common.loading"))
             } else if model.isDeleted {
                 ContentUnavailableView("timeline.deleted.title", systemImage: "trash")
             } else if let errorMessage = model.errorMessage {
