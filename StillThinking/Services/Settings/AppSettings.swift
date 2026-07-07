@@ -8,6 +8,7 @@
 import Foundation
 
 struct AppSettings: Equatable, Sendable {
+    var hasCompletedOnboarding: Bool
     var showsThoughtTextInNotifications: Bool
     var notificationStartHour: Int
     var notificationEndHour: Int
@@ -15,6 +16,7 @@ struct AppSettings: Equatable, Sendable {
     var privacyLockEnabled: Bool
 
     static let `default` = AppSettings(
+        hasCompletedOnboarding: false,
         showsThoughtTextInNotifications: false,
         notificationStartHour: 9,
         notificationEndHour: 21,

@@ -25,6 +25,11 @@ enum AppCompositionRoot {
     }
 
     @MainActor
+    static func makeOnboardingModel(environment: AppEnvironment) -> OnboardingModel {
+        OnboardingModel(settingsStore: environment.settingsStore)
+    }
+
+    @MainActor
     static func makeTodayReflectionModel(environment: AppEnvironment) -> TodayReflectionModel {
         let useCase = TodayReflectionUseCase(
             repository: environment.thoughtRepository,

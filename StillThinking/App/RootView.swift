@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RootView: View {
     let environment: AppEnvironment
+    @State private var onboardingModel: OnboardingModel
     @State private var thoughtCaptureModel: ThoughtCaptureModel
     @State private var todayReflectionModel: TodayReflectionModel
     @State private var archiveModel: ArchiveModel
@@ -20,6 +21,9 @@ struct RootView: View {
     @MainActor
     init(environment: AppEnvironment) {
         self.environment = environment
+        _onboardingModel = State(
+            initialValue: AppCompositionRoot.makeOnboardingModel(environment: environment)
+        )
         _thoughtCaptureModel = State(
             initialValue: AppCompositionRoot.makeThoughtCaptureModel(environment: environment)
         )
@@ -38,48 +42,11 @@ struct RootView: View {
     }
 
     var body: some View {
-        TabView {
-            NavigationStack {
-                ThoughtCaptureView(model: thoughtCaptureModel)
-            }
-            .tabItem {
-                Label("Запись", systemImage: "square.and.pencil")
-            }
-
-            NavigationStack {
-                TodayReflectionView(model: todayReflectionModel)
-            }
-            .tabItem {
-                Label("Сегодня", systemImage: "calendar")
-            }
-
-            NavigationStack {
-                ArchiveView(
-                    model: archiveModel,
-                    makeTimelineModel: { thoughtID in
-                        AppCompositionRoot.makeThoughtTimelineModel(
-                            thoughtID: thoughtID,
-                            environment: environment
-                        )
-                    }
-                )
-            }
-            .tabItem {
-                Label("Архив", systemImage: "archivebox")
-            }
-
-            NavigationStack {
-                SettingsView(
-                    model: settingsModel,
-                    privacyLockModel: privacyLockModel,
-                    logConfigurationSource: environment.logConfigurationSource,
-                    makeDeveloperLoggingModel: {
-                        AppCompositionRoot.makeDeveloperLoggingModel(environment: environment)
-                    }
-                )
-            }
-            .tabItem {
-                Label("Настройки", systemImage: "gearshape")
+        Group {
+            if onboardingModel.hasCompletedOnboarding {
+                mainTabs
+            } else {
+                OnboardingView(model: onboardingModel)
             }
         }
         .overlay {
@@ -105,6 +72,53 @@ struct RootView: View {
                 break
             @unknown default:
                 break
+            }
+        }
+    }
+
+    private var mainTabs: some View {
+        TabView {
+            NavigationStack {
+                ThoughtCaptureView(model: thoughtCaptureModel)
+            }
+            .tabItem {
+                Label("root.tab.capture", systemImage: "square.and.pencil")
+            }
+
+            NavigationStack {
+                TodayReflectionView(model: todayReflectionModel)
+            }
+            .tabItem {
+                Label("root.tab.today", systemImage: "calendar")
+            }
+
+            NavigationStack {
+                ArchiveView(
+                    model: archiveModel,
+                    makeTimelineModel: { thoughtID in
+                        AppCompositionRoot.makeThoughtTimelineModel(
+                            thoughtID: thoughtID,
+                            environment: environment
+                        )
+                    }
+                )
+            }
+            .tabItem {
+                Label("root.tab.archive", systemImage: "archivebox")
+            }
+
+            NavigationStack {
+                SettingsView(
+                    model: settingsModel,
+                    privacyLockModel: privacyLockModel,
+                    logConfigurationSource: environment.logConfigurationSource,
+                    makeDeveloperLoggingModel: {
+                        AppCompositionRoot.makeDeveloperLoggingModel(environment: environment)
+                    }
+                )
+            }
+            .tabItem {
+                Label("root.tab.settings", systemImage: "gearshape")
             }
         }
     }

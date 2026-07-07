@@ -12,6 +12,7 @@ import Observation
 @Observable
 final class AppSettingsStore {
     private enum Key {
+        static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let showsThoughtTextInNotifications = "showsThoughtTextInNotifications"
         static let notificationStartHour = "notificationStartHour"
         static let notificationEndHour = "notificationEndHour"
@@ -43,6 +44,7 @@ final class AppSettingsStore {
 
     private static func load(from defaults: UserDefaults) -> AppSettings {
         var settings = AppSettings.default
+        settings.hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
         settings.showsThoughtTextInNotifications = defaults.bool(forKey: Key.showsThoughtTextInNotifications)
 
         if defaults.object(forKey: Key.notificationStartHour) != nil {
@@ -64,6 +66,7 @@ final class AppSettingsStore {
         }
 
         let normalizedSettings = settings.normalized
+        defaults.set(normalizedSettings.hasCompletedOnboarding, forKey: Key.hasCompletedOnboarding)
         defaults.set(normalizedSettings.showsThoughtTextInNotifications, forKey: Key.showsThoughtTextInNotifications)
         defaults.set(normalizedSettings.notificationStartHour, forKey: Key.notificationStartHour)
         defaults.set(normalizedSettings.notificationEndHour, forKey: Key.notificationEndHour)
