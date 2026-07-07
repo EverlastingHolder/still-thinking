@@ -21,15 +21,15 @@ struct ArchiveView: View {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
             } else if model.isEmptySearchResult {
-                ContentUnavailableView("Ничего не найдено", systemImage: "magnifyingglass")
+                ContentUnavailableView("archive.emptySearch.title", systemImage: "magnifyingglass")
             } else if model.items.isEmpty {
-                ContentUnavailableView("Архив пуст", systemImage: "archivebox")
+                ContentUnavailableView("archive.empty.title", systemImage: "archivebox")
             } else {
                 archiveItems
             }
         }
-        .navigationTitle("Архив")
-        .searchable(text: $model.searchText, prompt: "Поиск")
+        .navigationTitle("archive.navigationTitle")
+        .searchable(text: $model.searchText, prompt: "archive.search.prompt")
         .task(id: model.searchText) {
             await model.load()
         }
@@ -51,7 +51,7 @@ struct ArchiveView: View {
 
     private var filterSection: some View {
         Section {
-            Picker("Статус", selection: $model.selectedFilter) {
+            Picker("archive.filter.status", selection: $model.selectedFilter) {
                 ForEach(ArchiveStatusFilter.allCases) { filter in
                     Text(filter.title).tag(filter)
                 }
@@ -86,7 +86,12 @@ struct ArchiveView: View {
                         .foregroundStyle(.secondary)
 
                         if item.reflectionCount > 0 {
-                            Text("Ответов: \(item.reflectionCount)")
+                            Text(
+                                String(
+                                    format: String(localized: "archive.reflectionCount"),
+                                    item.reflectionCount
+                                )
+                            )
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -101,15 +106,15 @@ private extension ArchiveStatusFilter {
     var title: String {
         switch self {
         case .all:
-            "Все"
+            String(localized: "archive.filter.all")
         case .pending:
-            "Ждут"
+            String(localized: "archive.filter.pending")
         case .returned:
-            "Сегодня"
+            String(localized: "archive.filter.returned")
         case .completed:
-            "Завершены"
+            String(localized: "archive.filter.completed")
         case .released:
-            "Отпущены"
+            String(localized: "archive.filter.released")
         }
     }
 }
@@ -118,13 +123,13 @@ private extension ThoughtStatus {
     var title: String {
         switch self {
         case .pending:
-            "Ожидает"
+            String(localized: "archive.status.pending")
         case .returned:
-            "Вернулась"
+            String(localized: "archive.status.returned")
         case .completed:
-            "Завершена"
+            String(localized: "archive.status.completed")
         case .released:
-            "Отпущена"
+            String(localized: "archive.status.released")
         }
     }
 

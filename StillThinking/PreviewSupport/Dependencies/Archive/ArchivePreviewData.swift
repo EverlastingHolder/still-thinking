@@ -36,7 +36,7 @@ extension ThoughtTimelineEntry {
         ThoughtTimelineEntry(
             id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 2)),
             date: Date(timeIntervalSinceReferenceDate: 0),
-            title: "Исходная мысль",
+            title: String(localized: "timeline.entry.originalThought"),
             text: "Проверить, изменилась ли позиция после паузы.",
             kind: .thought
         )
@@ -46,7 +46,7 @@ extension ThoughtTimelineEntry {
         ThoughtTimelineEntry(
             id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 3)),
             date: Date(timeIntervalSinceReferenceDate: 200),
-            title: "Ответ",
+            title: String(localized: "timeline.entry.reflection"),
             text: "Позиция стала спокойнее, но решение всё ещё выглядит верным.",
             kind: .reflection(.partiallyChanged)
         )

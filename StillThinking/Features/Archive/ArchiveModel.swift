@@ -50,7 +50,7 @@ final class ArchiveModel {
         do {
             items = try await useCase.loadArchive(filter: selectedFilter, searchText: searchText)
         } catch {
-            errorMessage = "Не удалось загрузить архив."
+            errorMessage = String(localized: "archive.error.loadFailed")
             logger.error(
                 "Archive loading failed",
                 metadata: ["errorType": String(describing: type(of: error))]

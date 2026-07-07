@@ -45,7 +45,7 @@ final class ThoughtTimelineModel {
         do {
             entries = try await useCase.loadTimeline(thoughtID: thoughtID)
         } catch {
-            errorMessage = "Не удалось загрузить историю."
+            errorMessage = String(localized: "timeline.error.loadFailed")
             logger.error(
                 "Timeline loading failed",
                 metadata: ["errorType": String(describing: type(of: error))]
@@ -61,7 +61,7 @@ final class ThoughtTimelineModel {
             entries = []
             isDeleted = true
         } catch {
-            errorMessage = "Не удалось удалить мысль."
+            errorMessage = String(localized: "timeline.error.deleteFailed")
             logger.error(
                 "Thought deletion failed",
                 metadata: ["errorType": String(describing: type(of: error))]
