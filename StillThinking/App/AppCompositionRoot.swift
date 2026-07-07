@@ -72,6 +72,11 @@ enum AppCompositionRoot {
             settingsStore: environment.settingsStore,
             repository: environment.thoughtRepository,
             returnScheduler: environment.returnScheduler,
+            localDataExporter: LocalDataExportUseCase(
+                repository: environment.thoughtRepository,
+                settingsStore: environment.settingsStore,
+                clock: environment.clock
+            ),
             logger: environment.loggerFactory.makeLogger(for: .featureSettings)
         )
     }

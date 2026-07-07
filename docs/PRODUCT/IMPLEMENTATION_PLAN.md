@@ -321,9 +321,9 @@ Debug-only экран переключения каналов можно реа�
 
 ## Exit criteria
 
-- [ ] Новый пользователь понимает основной цикл.
-- [ ] Ключевые экраны доступны с VoiceOver и крупным текстом.
-- [ ] RU и EN не ломают layout.
+- [x] Новый пользователь понимает основной цикл.
+- [x] Ключевые экраны доступны с VoiceOver и крупным текстом.
+- [x] RU и EN не ломают layout.
 
 ---
 
@@ -333,24 +333,24 @@ Debug-only экран переключения каналов можно реа�
 
 ## Задачи
 
-1. Экспорт локальных данных.
-2. Восстановление pending notifications.
-3. Проверка смены таймзоны и системного времени.
-4. Migration tests.
-5. Privacy audit логов и уведомлений.
-6. Проверить Release logging policy: подробные debug/info события отключены, launch arguments не открывают production verbosity.
-7. Полный regression checklist.
-8. TestFlight configuration.
-9. Release notes и известные ограничения.
+1. [x] Экспорт локальных данных: `docs/PRODUCT/LOCAL_DATA_EXPORT_FORMAT.md`.
+2. [x] Восстановление pending notifications.
+3. [x] Проверка смены таймзоны и системного времени.
+4. [x] Migration tests.
+5. [x] Privacy audit логов и уведомлений: `docs/PRODUCT/PRIVACY_AUDIT.md`.
+6. [x] Проверить Release logging policy: подробные debug/info события отключены, launch arguments не открывают production verbosity.
+7. [x] Полный regression checklist: `docs/PRODUCT/BETA_READINESS_CHECKLIST.md`.
+8. [x] TestFlight configuration: `docs/PRODUCT/TESTFLIGHT_CONFIGURATION.md`.
+9. [x] Release notes и известные ограничения: `docs/PRODUCT/RELEASE_NOTES_BETA.md`.
 
 ## Exit criteria
 
 - [ ] Все Foundation/MVP/Beta blockers закрыты.
 - [ ] CI зелёный.
-- [ ] Full test target проходит.
+- [x] Full test target проходит.
 - [ ] Основные сценарии вручную проверены.
-- [ ] Нет известных privacy/blocking defects.
-- [ ] Release logging policy проверена.
+- [x] Нет известных privacy/blocking defects.
+- [x] Release logging policy проверена.
 - [ ] Build готов к ограниченному TestFlight.
 
 ---

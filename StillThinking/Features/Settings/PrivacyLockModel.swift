@@ -5,6 +5,7 @@
 //  Created by roman.moshkovcev on 06.07.2026.
 //
 
+import Foundation
 import Observation
 
 @MainActor
@@ -39,7 +40,7 @@ final class PrivacyLockModel {
 
         switch authenticationClient.availability() {
         case .available:
-            let authenticated = await authenticationClient.authenticate("Включить локальную блокировку Still Thinking")
+            let authenticated = await authenticationClient.authenticate(String(localized: "privacyLock.reason.enable"))
             guard authenticated else {
                 state = .failed
                 logger.notice("Privacy lock enabling authentication failed")
@@ -72,7 +73,7 @@ final class PrivacyLockModel {
             return
         }
 
-        let authenticated = await authenticationClient.authenticate("Разблокировать Still Thinking")
+        let authenticated = await authenticationClient.authenticate(String(localized: "privacyLock.reason.unlock"))
         state = authenticated ? .unlocked : .failed
     }
 }

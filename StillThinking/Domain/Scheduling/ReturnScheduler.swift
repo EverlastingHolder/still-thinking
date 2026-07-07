@@ -154,7 +154,7 @@ final class ReturnScheduler {
                 title: "Still Thinking",
                 body: settings.showsThoughtTextInNotifications
                     ? thought.text
-                    : "У вас есть мысль для возвращения."
+                    : String(localized: "notifications.return.body")
             )
         )
 

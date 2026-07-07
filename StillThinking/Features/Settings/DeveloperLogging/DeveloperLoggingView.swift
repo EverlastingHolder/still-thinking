@@ -15,7 +15,15 @@ struct DeveloperLoggingView: View {
     var body: some View {
         Form {
             Section("developerLogging.section.source") {
-                LabeledContent("developerLogging.source.active", value: activeSource.title)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("developerLogging.source.active")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Text(activeSource.title)
+                }
+                .accessibilityElement(children: .combine)
+
                 Text("developerLogging.source.footer")
                     .foregroundStyle(.secondary)
             }
@@ -72,5 +80,13 @@ struct DeveloperLoggingView: View {
     NavigationStack {
         DeveloperLoggingView(model: .preview(), activeSource: .projectDefault)
     }
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        DeveloperLoggingView(model: .preview(), activeSource: .launchArguments)
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }
 #endif

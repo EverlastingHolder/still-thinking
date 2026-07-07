@@ -37,9 +37,8 @@ struct ThoughtTimelineView: View {
             } else {
                 ForEach(model.entries) { entry in
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack {
+                        VStack(alignment: .leading, spacing: 4) {
                             Label(entry.title, systemImage: entry.kind.systemImage)
-                            Spacer()
                             Text(entry.date.formatted(date: .abbreviated, time: .shortened))
                                 .foregroundStyle(.secondary)
                         }
@@ -114,4 +113,19 @@ private extension ThoughtTimelineEntry.Kind {
             )
         )
     }
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        ThoughtTimelineView(
+            model: .preview(
+                entries: [
+                    .previewThought(),
+                    .previewReflection()
+                ]
+            )
+        )
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }

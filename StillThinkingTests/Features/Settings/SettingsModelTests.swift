@@ -128,9 +128,50 @@ struct SettingsModelTests {
         #expect(model.isDeletingAllData == false)
     }
 
+    @Test("Экспорт создаёт документ с локальными данными")
+    func exportCreatesLocalDataDocument() async throws {
+        let exportDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: exportDirectory, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.removeItem(at: exportDirectory)
+        }
+
+        let fixture = try makeFixture(notificationStatus: .denied, exportDirectory: exportDirectory)
+        let thought = makeThought()
+        let schedule = makeSchedule(thoughtID: thought.id)
+        let reflection = Reflection(
+            id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 4)),
+            thoughtID: thought.id,
+            text: "Ответ",
+            opinionState: .unchanged,
+            createdAt: Date(timeIntervalSinceReferenceDate: 20)
+        )
+
+        fixture.store.settings.hasCompletedOnboarding = true
+        try await fixture.repository.createThought(thought, schedule: schedule)
+        try await fixture.repository.addReflection(reflection)
+        await fixture.model.prepareDataExport()
+
+        let exportFileURL = try #require(fixture.model.exportFileURL)
+        let data = try Data(contentsOf: exportFileURL)
+        let snapshot = try JSONDecoder.exportDecoder.decode(LocalDataExportSnapshot.self, from: data)
+
+        #expect(exportFileURL.lastPathComponent == "still-thinking-export-2001-01-01T00-08-20Z.json")
+        #expect(snapshot.formatVersion == 1)
+        #expect(snapshot.exportedAt == Date(timeIntervalSinceReferenceDate: 500))
+        #expect(snapshot.settings.hasCompletedOnboarding)
+        #expect(snapshot.thoughts.map(\.thought) == [thought])
+        #expect(snapshot.thoughts.first?.reflections == [reflection])
+        #expect(snapshot.thoughts.first?.schedules == [schedule])
+        #expect(fixture.model.exportMessage == String(localized: "settings.export.ready"))
+        #expect(fixture.model.isExportingData == false)
+    }
+
     private func makeFixture(
         notificationStatus: NotificationAuthorizationStatus,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        exportDirectory: URL = FileManager.default.temporaryDirectory
     ) throws -> Fixture {
         let container = try StillThinkingModelContainerFactory.inMemory()
         let recorder = RecordingLogSink()
@@ -159,6 +200,12 @@ struct SettingsModelTests {
             settingsStore: store,
             repository: repository,
             returnScheduler: scheduler,
+            localDataExporter: LocalDataExportUseCase(
+                repository: repository,
+                settingsStore: store,
+                clock: .fixed(Date(timeIntervalSinceReferenceDate: 500))
+            ),
+            exportDirectory: exportDirectory,
             logger: loggerFactory.makeLogger(for: .featureSettings)
         )
 
@@ -256,5 +303,13 @@ struct SettingsModelTests {
         func schedules(state: ReturnScheduleState, dueOnOrBefore date: Date) async throws -> [ReturnSchedule] {
             []
         }
+    }
+}
+
+private extension JSONDecoder {
+    static var exportDecoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 }

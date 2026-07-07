@@ -42,7 +42,7 @@ struct ThoughtCaptureView: View {
                         Text(preset.title).tag(preset)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
 
                 if model.selectedPreset == .custom {
                     DatePicker(
@@ -203,4 +203,17 @@ private struct KeyboardDismissTapLayer: UIViewRepresentable {
         )
     }
     .preferredColorScheme(.dark)
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        ThoughtCaptureView(
+            model: .preview(
+                text: "A longer unfinished thought that should remain editable without squeezing the return controls.",
+                pendingThoughtCount: 4
+            )
+        )
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }

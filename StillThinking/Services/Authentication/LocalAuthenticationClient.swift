@@ -5,6 +5,7 @@
 //  Created by roman.moshkovcev on 06.07.2026.
 //
 
+import Foundation
 import LocalAuthentication
 
 enum LocalAuthenticationClient {
@@ -17,7 +18,7 @@ enum LocalAuthenticationClient {
                 return .available
             }
 
-            return .unavailable("Биометрия недоступна или не настроена.")
+            return .unavailable(String(localized: "privacyLock.unavailable.defaultReason"))
         } authenticate: { reason in
             let context = contextFactory()
 

@@ -15,6 +15,7 @@ struct RootView: View {
     @State private var archiveModel: ArchiveModel
     @State private var settingsModel: SettingsModel
     @State private var privacyLockModel: PrivacyLockModel
+    @State private var hasRebuiltPendingNotifications = false
     @Environment(\.scenePhase)
     private var scenePhase
 
@@ -59,6 +60,7 @@ struct RootView: View {
                 .makeLogger(for: .app)
                 .info("Root view appeared")
             privacyLockModel.lockIfNeeded()
+            rebuildPendingNotificationsIfNeeded()
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -119,6 +121,27 @@ struct RootView: View {
             }
             .tabItem {
                 Label("root.tab.settings", systemImage: "gearshape")
+            }
+        }
+    }
+
+    private func rebuildPendingNotificationsIfNeeded() {
+        guard hasRebuiltPendingNotifications == false else {
+            return
+        }
+
+        hasRebuiltPendingNotifications = true
+
+        Task {
+            do {
+                try await environment.returnScheduler.rebuildPendingNotifications()
+            } catch {
+                environment.loggerFactory
+                    .makeLogger(for: .app)
+                    .error(
+                        "Pending notification startup rebuild failed",
+                        metadata: ["errorType": String(describing: type(of: error))]
+                    )
             }
         }
     }

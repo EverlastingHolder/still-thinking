@@ -103,6 +103,31 @@ struct SettingsView: View {
 
     private var dataSection: some View {
         Section {
+            Button {
+                Task {
+                    await model.prepareDataExport()
+                }
+            } label: {
+                if model.isExportingData {
+                    ProgressView()
+                        .accessibilityLabel(Text("common.exporting"))
+                } else {
+                    Label("settings.export.button", systemImage: "square.and.arrow.up")
+                }
+            }
+            .disabled(model.isExportingData)
+
+            if let exportFileURL = model.exportFileURL {
+                ShareLink(item: exportFileURL) {
+                    Label("settings.export.share", systemImage: "square.and.arrow.up")
+                }
+            }
+
+            if let exportMessage = model.exportMessage {
+                Text(exportMessage)
+                    .foregroundStyle(.secondary)
+            }
+
             Button(role: .destructive) {
                 showsDeleteAllConfirmation = true
             } label: {
@@ -202,4 +227,17 @@ struct SettingsView: View {
             makeDeveloperLoggingModel: { .preview() }
         )
     }
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        SettingsView(
+            model: .preview(),
+            privacyLockModel: .preview(state: .unavailable("Biometrics are not available on this device.")),
+            logConfigurationSource: .environment,
+            makeDeveloperLoggingModel: { .preview() }
+        )
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }
