@@ -19,7 +19,7 @@ struct ThoughtCaptureModelTests {
 
         await model.save()
 
-        #expect(model.validationMessage == "Введите мысль, которую хотите вернуть позже.")
+        #expect(model.validationMessage == String(localized: "thoughtCapture.validation.empty"))
         #expect(model.saveState == .idle)
         #expect(model.pendingThoughtCount == 0)
     }
@@ -61,7 +61,7 @@ struct ThoughtCaptureModelTests {
 
         await model.save()
 
-        #expect(model.validationMessage == "Выберите дату в будущем.")
+        #expect(model.validationMessage == String(localized: "thoughtCapture.validation.futureDate"))
         #expect(model.pendingThoughtCount == 0)
     }
 

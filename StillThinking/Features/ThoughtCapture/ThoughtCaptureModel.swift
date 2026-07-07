@@ -76,7 +76,7 @@ final class ThoughtCaptureModel {
     func save() async {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedText.isEmpty == false else {
-            validationMessage = "Введите мысль, которую хотите вернуть позже."
+            validationMessage = String(localized: "thoughtCapture.validation.empty")
             saveState = .idle
             return
         }
@@ -85,7 +85,7 @@ final class ThoughtCaptureModel {
         let dueDate = selectedPreset.dueDate(from: now, customDate: customReturnDate)
 
         guard dueDate >= minimumCustomReturnDate else {
-            validationMessage = "Выберите дату в будущем."
+            validationMessage = String(localized: "thoughtCapture.validation.futureDate")
             saveState = .idle
             return
         }
@@ -120,7 +120,7 @@ final class ThoughtCaptureModel {
             await loadPendingThoughtCount()
         } catch {
             saveState = .failed
-            validationMessage = "Не удалось сохранить мысль. Попробуйте ещё раз."
+            validationMessage = String(localized: "thoughtCapture.validation.saveFailed")
             logger.error(
                 "Thought creation failed",
                 metadata: ["errorType": String(describing: type(of: error))]

@@ -17,7 +17,7 @@ struct ThoughtCaptureView: View {
             Section {
                 ZStack(alignment: .topLeading) {
                     if model.text.isEmpty {
-                        Text("Что стоит вернуть позже?")
+                        Text("thoughtCapture.placeholder")
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 8)
@@ -28,16 +28,16 @@ struct ThoughtCaptureView: View {
                         .focused($isTextEditorFocused)
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 180)
-                        .accessibilityLabel("Текст мысли")
+                        .accessibilityLabel(Text("thoughtCapture.text.accessibilityLabel"))
                 }
             } header: {
-                Text("Мысль")
+                Text("thoughtCapture.section.thought")
             } footer: {
-                Text("Запишите незавершённую мысль. Она вернётся в выбранный срок.")
+                Text("thoughtCapture.section.thought.footer")
             }
 
-            Section("Вернуть") {
-                Picker("Срок", selection: $model.selectedPreset) {
+            Section("thoughtCapture.section.return") {
+                Picker("thoughtCapture.return.picker", selection: $model.selectedPreset) {
                     ForEach(ThoughtReturnPreset.allCases) { preset in
                         Text(preset.title).tag(preset)
                     }
@@ -46,7 +46,7 @@ struct ThoughtCaptureView: View {
 
                 if model.selectedPreset == .custom {
                     DatePicker(
-                        "Дата",
+                        "thoughtCapture.customDate.label",
                         selection: $model.customReturnDate,
                         in: model.minimumCustomReturnDate...,
                         displayedComponents: [.date, .hourAndMinute]
@@ -71,17 +71,22 @@ struct ThoughtCaptureView: View {
                     if model.isSaving {
                         ProgressView()
                     } else {
-                        Label("Сохранить", systemImage: "tray.and.arrow.down")
+                        Label("thoughtCapture.save.button", systemImage: "tray.and.arrow.down")
                     }
                 }
                 .disabled(model.canSave == false)
 
                 if model.saveState == .saved {
-                    Label("Сохранено", systemImage: "checkmark.circle")
+                    Label("thoughtCapture.saved.label", systemImage: "checkmark.circle")
                         .foregroundStyle(.green)
                 }
             } footer: {
-                Text("Ожидают возвращения: \(model.pendingThoughtCount)")
+                Text(
+                    String(
+                        format: String(localized: "thoughtCapture.pendingCount"),
+                        model.pendingThoughtCount
+                    )
+                )
             }
         }
         .navigationTitle("Still Thinking")
@@ -192,7 +197,7 @@ private struct KeyboardDismissTapLayer: UIViewRepresentable {
     NavigationStack {
         ThoughtCaptureView(
             model: .preview(
-                validationMessage: "Введите мысль, которую хотите вернуть позже."
+                validationMessage: String(localized: "thoughtCapture.validation.empty")
             )
         )
     }
