@@ -14,44 +14,41 @@ struct DeveloperLoggingView: View {
 
     var body: some View {
         Form {
-            Section("Источник") {
-                LabeledContent("Активен", value: activeSource.title)
-                Text(
-                    "Сохранённые настройки применятся после перезапуска приложения, " +
-                        "если launch arguments или environment не задают логирование."
-                )
+            Section("developerLogging.section.source") {
+                LabeledContent("developerLogging.source.active", value: activeSource.title)
+                Text("developerLogging.source.footer")
                     .foregroundStyle(.secondary)
             }
 
-            Section("Уровень") {
-                Picker("Minimum level", selection: levelBinding) {
+            Section("developerLogging.section.level") {
+                Picker("developerLogging.minimumLevel.picker", selection: levelBinding) {
                     ForEach(LogLevel.allCases) { level in
-                        Text(level.rawValue).tag(level)
+                        Text(level.localized).tag(level)
                     }
                 }
             }
 
-            Section("Каналы") {
+            Section("developerLogging.section.channels") {
                 ForEach(LogChannel.allCases, id: \.self) { channel in
-                    Toggle(channel.rawValue, isOn: channelBinding(channel))
+                    Toggle(channel.localized, isOn: channelBinding(channel))
                 }
             }
 
             Section {
-                Button("Включить все") {
+                Button("developerLogging.enableAll.button") {
                     model.enableAll()
                 }
 
-                Button("Отключить все") {
+                Button("developerLogging.disableAll.button") {
                     model.disableAll()
                 }
 
-                Button("Сбросить") {
+                Button("developerLogging.reset.button") {
                     model.reset()
                 }
             }
         }
-        .navigationTitle("Logging")
+        .navigationTitle("developerLogging.navigationTitle")
     }
 
     private var levelBinding: Binding<LogLevel> {

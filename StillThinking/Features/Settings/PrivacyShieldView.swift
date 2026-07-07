@@ -16,11 +16,11 @@ struct PrivacyShieldView: View {
                 .font(.system(size: 56))
                 .foregroundStyle(.secondary)
 
-            Text("Still Thinking заблокирован")
+            Text("privacyShield.title")
                 .font(.title2.bold())
 
             if model.state == .failed {
-                Text("Не удалось подтвердить доступ. Попробуйте ещё раз.")
+                Text("privacyShield.failed.message")
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -30,7 +30,7 @@ struct PrivacyShieldView: View {
                     await model.unlock()
                 }
             } label: {
-                Label("Разблокировать", systemImage: "faceid")
+                Label("privacyShield.unlock.button", systemImage: "faceid")
             }
             .buttonStyle(.borderedProminent)
         }

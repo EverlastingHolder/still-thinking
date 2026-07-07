@@ -20,13 +20,13 @@ enum ThoughtReturnPreset: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .tomorrow:
-            "Завтра"
+            String(localized: "thoughtCapture.returnPreset.tomorrow")
         case .week:
-            "Неделя"
+            String(localized: "thoughtCapture.returnPreset.week")
         case .month:
-            "Месяц"
+            String(localized: "thoughtCapture.returnPreset.month")
         case .custom:
-            "Дата"
+            String(localized: "thoughtCapture.returnPreset.custom")
         }
     }
 

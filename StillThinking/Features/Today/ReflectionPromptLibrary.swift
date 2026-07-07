@@ -5,11 +5,13 @@
 //  Created by roman.moshkovcev on 03.07.2026.
 //
 
+import Foundation
+
 enum ReflectionPromptLibrary {
     static let prompts = [
-        "Что в этой мысли всё ещё кажется важным?",
-        "Что изменилось с момента записи?",
-        "С чем вы теперь согласны меньше?",
-        "Какой следующий маленький шаг виден сейчас?"
+        String(localized: "today.prompt.stillImportant"),
+        String(localized: "today.prompt.changedSinceCapture"),
+        String(localized: "today.prompt.lessAgree"),
+        String(localized: "today.prompt.nextStep")
     ]
 }

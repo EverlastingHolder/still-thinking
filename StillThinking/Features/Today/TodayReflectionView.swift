@@ -16,6 +16,7 @@ struct TodayReflectionView: View {
             case .idle, .loading:
                 Section {
                     ProgressView()
+                        .accessibilityLabel(Text("common.loading"))
                 }
             case .empty:
                 emptySection
@@ -33,7 +34,7 @@ struct TodayReflectionView: View {
                 }
             }
         }
-        .navigationTitle("Сегодня")
+        .navigationTitle("today.navigationTitle")
         .task {
             if model.loadState == .idle {
                 await model.load()
@@ -49,14 +50,14 @@ struct TodayReflectionView: View {
 
     private var emptySection: some View {
         Section {
-            Label("Нет мыслей для возвращения", systemImage: "checkmark.circle")
+            Label("today.empty.title", systemImage: "checkmark.circle")
                 .foregroundStyle(.secondary)
         }
     }
 
     private var failedSection: some View {
         Section {
-            Label("Не удалось загрузить мысли", systemImage: "exclamationmark.triangle")
+            Label("today.failed.title", systemImage: "exclamationmark.triangle")
                 .foregroundStyle(.red)
 
             Button {
@@ -64,7 +65,7 @@ struct TodayReflectionView: View {
                     await model.load()
                 }
             } label: {
-                Label("Повторить", systemImage: "arrow.clockwise")
+                Label("today.retry.button", systemImage: "arrow.clockwise")
             }
         }
     }
@@ -75,19 +76,25 @@ struct TodayReflectionView: View {
                 .textSelection(.enabled)
 
             if let returnedAt = item.returnedAt {
-                LabeledContent("Вернулась", value: returnedAt.formatted(date: .abbreviated, time: .shortened))
+                LabeledContent(
+                    "today.thought.returnedAt",
+                    value: returnedAt.formatted(date: .abbreviated, time: .shortened)
+                )
             }
 
             if item.reflectionCount > 0 {
-                LabeledContent("Ответов", value: "\(item.reflectionCount)")
+                LabeledContent(
+                    "today.thought.reflectionCount",
+                    value: "\(item.reflectionCount)"
+                )
             }
         } header: {
-            Text("Мысль")
+            Text("today.section.thought")
         }
     }
 
     private var promptsSection: some View {
-        Section("Вопросы") {
+        Section("today.section.prompts") {
             ForEach(ReflectionPromptLibrary.prompts, id: \.self) { prompt in
                 Button {
                     model.applyPrompt(prompt)
@@ -102,21 +109,21 @@ struct TodayReflectionView: View {
         Section {
             TextEditor(text: $model.reflectionText)
                 .frame(minHeight: 160)
-                .accessibilityLabel("Ответ на вернувшуюся мысль")
+                .accessibilityLabel(Text("today.reflectionText.accessibilityLabel"))
 
-            Picker("Мнение", selection: $model.selectedOpinionState) {
+            Picker("today.opinion.picker", selection: $model.selectedOpinionState) {
                 ForEach(OpinionState.allCases, id: \.self) { state in
                     Text(state.title).tag(state)
                 }
             }
         } header: {
-            Text("Ответ")
+            Text("today.section.reflection")
         }
     }
 
     private var actionSection: some View {
-        Section("Дальше") {
-            Picker("Действие", selection: $model.selectedAction) {
+        Section("today.section.next") {
+            Picker("today.action.picker", selection: $model.selectedAction) {
                 ForEach(TodayReflectionAction.allCases) { action in
                     Text(action.title).tag(action)
                 }
@@ -125,7 +132,7 @@ struct TodayReflectionView: View {
 
             if model.selectedAction == .reschedule {
                 DatePicker(
-                    "Вернуть",
+                    "today.reschedule.date",
                     selection: $model.customReturnDate,
                     in: model.minimumCustomReturnDate...,
                     displayedComponents: [.date, .hourAndMinute]
@@ -149,8 +156,9 @@ struct TodayReflectionView: View {
             } label: {
                 if model.isSaving {
                     ProgressView()
+                        .accessibilityLabel(Text("common.saving"))
                 } else {
-                    Label("Сохранить ответ", systemImage: "tray.and.arrow.down")
+                    Label("today.save.button", systemImage: "tray.and.arrow.down")
                 }
             }
             .disabled(model.isSaving)
@@ -162,13 +170,13 @@ private extension OpinionState {
     var title: String {
         switch self {
         case .unchanged:
-            "Без изменений"
+            String(localized: "today.opinion.unchanged")
         case .partiallyChanged:
-            "Частично изменилось"
+            String(localized: "today.opinion.partiallyChanged")
         case .noLongerAgree:
-            "Больше не согласен"
+            String(localized: "today.opinion.noLongerAgree")
         case .unsure:
-            "Пока не ясно"
+            String(localized: "today.opinion.unsure")
         }
     }
 }

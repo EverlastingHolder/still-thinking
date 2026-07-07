@@ -100,7 +100,7 @@ struct SettingsModelTests {
         #expect(try await fixture.repository.thought(id: thought.id) == nil)
         #expect(try await fixture.repository.schedules(for: thought.id).isEmpty)
         #expect(try await fixture.repository.reflections(for: thought.id).isEmpty)
-        #expect(fixture.model.deletionMessage == "Локальные данные удалены.")
+        #expect(fixture.model.deletionMessage == String(localized: "settings.delete.success"))
     }
 
     @Test("Ошибка полного удаления отображается безопасно")
@@ -124,7 +124,7 @@ struct SettingsModelTests {
 
         await model.deleteAllData()
 
-        #expect(model.deletionMessage == "Не удалось удалить данные. Попробуйте ещё раз.")
+        #expect(model.deletionMessage == String(localized: "settings.delete.failed"))
         #expect(model.isDeletingAllData == false)
     }
 

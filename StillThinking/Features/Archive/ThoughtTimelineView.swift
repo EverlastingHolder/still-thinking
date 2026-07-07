@@ -26,13 +26,14 @@ struct ThoughtTimelineView: View {
         List {
             if model.isLoading {
                 ProgressView()
+                    .accessibilityLabel(Text("common.loading"))
             } else if model.isDeleted {
-                ContentUnavailableView("Мысль удалена", systemImage: "trash")
+                ContentUnavailableView("timeline.deleted.title", systemImage: "trash")
             } else if let errorMessage = model.errorMessage {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.red)
             } else if model.entries.isEmpty {
-                ContentUnavailableView("История пуста", systemImage: "clock.arrow.circlepath")
+                ContentUnavailableView("timeline.empty.title", systemImage: "clock.arrow.circlepath")
             } else {
                 ForEach(model.entries) { entry in
                     VStack(alignment: .leading, spacing: 8) {
@@ -53,30 +54,30 @@ struct ThoughtTimelineView: View {
                 }
             }
         }
-        .navigationTitle("История")
+        .navigationTitle("timeline.navigationTitle")
         .toolbar {
             Button(role: .destructive) {
                 showsDeleteConfirmation = true
             } label: {
-                Label("Удалить", systemImage: "trash")
+                Label("timeline.delete.button", systemImage: "trash")
             }
         }
         .confirmationDialog(
-            "Удалить эту мысль?",
+            "timeline.delete.confirmation.title",
             isPresented: $showsDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Удалить", role: .destructive) {
+            Button("timeline.delete.button", role: .destructive) {
                 Task {
                     await model.deleteThought()
                     onDeleted()
                     dismiss()
                 }
             }
-            Button("Отмена", role: .cancel) {
+            Button("timeline.delete.cancel", role: .cancel) {
             }
         } message: {
-            Text("Связанные ответы и расписания тоже будут удалены.")
+            Text("timeline.delete.confirmation.message")
         }
         .task {
             if model.entries.isEmpty {

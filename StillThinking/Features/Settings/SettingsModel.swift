@@ -5,6 +5,7 @@
 //  Created by roman.moshkovcev on 06.07.2026.
 //
 
+import Foundation
 import Observation
 
 @MainActor
@@ -72,10 +73,10 @@ final class SettingsModel {
 
         do {
             try await repository.deleteAllData()
-            deletionMessage = "Локальные данные удалены."
+            deletionMessage = String(localized: "settings.delete.success")
             logger.info("All local data deleted")
         } catch {
-            deletionMessage = "Не удалось удалить данные. Попробуйте ещё раз."
+            deletionMessage = String(localized: "settings.delete.failed")
             logger.error(
                 "All local data deletion failed",
                 metadata: ["errorType": String(describing: type(of: error))]
@@ -92,7 +93,7 @@ final class SettingsModel {
         do {
             try await returnScheduler.rebuildPendingNotifications()
         } catch {
-            scheduleUpdateMessage = "Настройки сохранены, но уведомления не удалось обновить."
+            scheduleUpdateMessage = String(localized: "settings.notifications.rebuildFailed")
             logger.error(
                 "Return notification rebuild failed",
                 metadata: ["errorType": String(describing: type(of: error))]

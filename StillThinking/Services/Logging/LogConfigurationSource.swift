@@ -5,6 +5,8 @@
 //  Created by roman.moshkovcev on 06.07.2026.
 //
 
+import Foundation
+
 enum LogConfigurationSource: String, Equatable, Sendable {
     case launchArguments
     case environment
@@ -14,13 +16,13 @@ enum LogConfigurationSource: String, Equatable, Sendable {
     var title: String {
         switch self {
         case .launchArguments:
-            "Launch arguments"
+            String(localized: "developerLogging.source.launchArguments")
         case .environment:
-            "Environment"
+            String(localized: "developerLogging.source.environment")
         case .debugPreferences:
-            "Developer Logging"
+            String(localized: "developerLogging.source.debugPreferences")
         case .projectDefault:
-            "Project default"
+            String(localized: "developerLogging.source.projectDefault")
         }
     }
 }

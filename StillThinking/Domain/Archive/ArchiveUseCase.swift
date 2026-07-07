@@ -58,7 +58,7 @@ final class ArchiveUseCase {
             ThoughtTimelineEntry(
                 id: thought.id,
                 date: thought.createdAt,
-                title: "Исходная мысль",
+                title: String(localized: "timeline.entry.originalThought"),
                 text: thought.text,
                 kind: .thought
             )
@@ -68,7 +68,7 @@ final class ArchiveUseCase {
             ThoughtTimelineEntry(
                 id: reflection.id,
                 date: reflection.createdAt,
-                title: "Ответ",
+                title: String(localized: "timeline.entry.reflection"),
                 text: reflection.text,
                 kind: .reflection(reflection.opinionState)
             )
@@ -104,11 +104,11 @@ private extension ReturnScheduleState {
     var title: String {
         switch self {
         case .scheduled:
-            "Запланировано"
+            String(localized: "timeline.schedule.scheduled")
         case .returned:
-            "Вернулась"
+            String(localized: "timeline.schedule.returned")
         case .cancelled:
-            "Отменено"
+            String(localized: "timeline.schedule.cancelled")
         }
     }
 }
