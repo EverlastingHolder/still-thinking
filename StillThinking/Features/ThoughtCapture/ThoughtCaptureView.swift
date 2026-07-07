@@ -81,7 +81,7 @@ struct ThoughtCaptureView: View {
                         .foregroundStyle(.green)
                 }
             } footer: {
-                Text(
+                unsafe Text(
                     String(
                         format: String(localized: "thoughtCapture.pendingCount"),
                         model.pendingThoughtCount

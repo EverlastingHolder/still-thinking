@@ -16,23 +16,21 @@ struct DeveloperLoggingView: View {
         Form {
             Section("developerLogging.section.source") {
                 LabeledContent("developerLogging.source.active", value: activeSource.title)
-                Text(
-                    "developerLogging.source.footer"
-                )
+                Text("developerLogging.source.footer")
                     .foregroundStyle(.secondary)
             }
 
             Section("developerLogging.section.level") {
                 Picker("developerLogging.minimumLevel.picker", selection: levelBinding) {
                     ForEach(LogLevel.allCases) { level in
-                        Text(level.rawValue).tag(level)
+                        Text(level.localized).tag(level)
                     }
                 }
             }
 
             Section("developerLogging.section.channels") {
                 ForEach(LogChannel.allCases, id: \.self) { channel in
-                    Toggle(channel.rawValue, isOn: channelBinding(channel))
+                    Toggle(channel.localized, isOn: channelBinding(channel))
                 }
             }
 

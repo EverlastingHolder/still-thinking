@@ -86,14 +86,14 @@ struct ArchiveView: View {
                         .foregroundStyle(.secondary)
 
                         if item.reflectionCount > 0 {
-                            Text(
+                            unsafe Text(
                                 String(
                                     format: String(localized: "archive.reflectionCount"),
                                     item.reflectionCount
                                 )
                             )
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                     }
                 }

@@ -5,6 +5,8 @@
 //  Created by roman.moshkovcev on 03.07.2026.
 //
 
+import SwiftUI
+
 enum LogChannel: String, CaseIterable, Sendable {
     case app
     case database
@@ -18,4 +20,8 @@ enum LogChannel: String, CaseIterable, Sendable {
     case featureTimeline = "feature.timeline"
     case featureArchive = "feature.archive"
     case featureSettings = "feature.settings"
+
+    var localized: LocalizedStringKey {
+        LocalizedStringKey(self.rawValue)
+    }
 }

@@ -49,7 +49,7 @@ struct SettingsView: View {
         Section {
             Toggle("settings.notifications.showThoughtText", isOn: notificationTextBinding)
 
-            Stepper(
+            unsafe Stepper(
                 String(
                     format: String(localized: "settings.notifications.startHour"),
                     model.settings.notificationStartHour
@@ -58,7 +58,7 @@ struct SettingsView: View {
                 in: 0...23
             )
 
-            Stepper(
+            unsafe Stepper(
                 String(
                     format: String(localized: "settings.notifications.endHour"),
                     model.settings.notificationEndHour
