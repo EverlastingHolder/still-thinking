@@ -18,7 +18,7 @@ struct OnboardingView: View {
                         .tag(index)
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .always))
+            .tabViewStyle(.page(indexDisplayMode: .never))
 
             progressText
                 .font(.footnote)
@@ -38,12 +38,13 @@ struct OnboardingView: View {
     }
 
     private var actionBar: some View {
-        VStack {
+        VStack(spacing: 12) {
             Button {
                 model.advance()
             } label: {
                 Text(LocalizedStringKey(model.isLastStep ? "onboarding.button.start" : "onboarding.button.next"))
                     .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -64,27 +65,32 @@ private struct OnboardingStepView: View {
     let step: OnboardingStep
 
     var body: some View {
-        VStack(spacing: 24) {
-            Image(systemName: step.systemImage)
-                .font(.system(size: 64, weight: .semibold))
-                .foregroundStyle(.tint)
-                .accessibilityHidden(true)
+        ScrollView {
+            VStack(spacing: 24) {
+                Image(systemName: step.systemImage)
+                    .font(.system(size: 64, weight: .semibold))
+                    .foregroundStyle(.tint)
+                    .accessibilityHidden(true)
 
-            VStack {
-                Text(LocalizedStringKey(step.titleKey))
-                    .font(.title.bold())
-                    .multilineTextAlignment(.center)
+                VStack(spacing: 12) {
+                    Text(LocalizedStringKey(step.titleKey))
+                        .font(.title.bold())
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                Text(LocalizedStringKey(step.messageKey))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(LocalizedStringKey(step.messageKey))
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .frame(maxWidth: 460)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal)
+            .padding(.vertical, 32)
         }
-        .frame(maxWidth: 460)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal)
         .accessibilityElement(children: .combine)
     }
 }
@@ -111,4 +117,15 @@ private struct OnboardingStepView: View {
         model: OnboardingModel(settingsStore: AppSettingsStore())
     )
     .environment(\.locale, Locale(identifier: "en"))
+}
+
+#Preview("English AX") {
+    OnboardingView(
+        model: OnboardingModel(
+            settingsStore: AppSettingsStore(),
+            currentStepIndex: 2
+        )
+    )
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }

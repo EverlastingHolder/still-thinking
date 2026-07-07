@@ -14,29 +14,48 @@ final class SettingsModel {
     var settings: AppSettings
     var deletionMessage: String?
     var isDeletingAllData: Bool
+    var exportFileURL: URL?
+    var exportMessage: String?
+    var isExportingData: Bool
     var scheduleUpdateMessage: String?
 
     private let settingsStore: AppSettingsStore
     private let repository: any ThoughtRepository
     private let returnScheduler: ReturnScheduler
+    private let localDataExporter: LocalDataExportUseCase
+    private let exportDirectory: URL
     private let logger: LoggerClient
 
     init(
         settingsStore: AppSettingsStore,
         repository: any ThoughtRepository,
         returnScheduler: ReturnScheduler,
+        localDataExporter: LocalDataExportUseCase? = nil,
+        exportDirectory: URL = FileManager.default.temporaryDirectory,
         logger: LoggerClient,
         deletionMessage: String? = nil,
         isDeletingAllData: Bool = false,
+        exportFileURL: URL? = nil,
+        exportMessage: String? = nil,
+        isExportingData: Bool = false,
         scheduleUpdateMessage: String? = nil
     ) {
         self.settingsStore = settingsStore
         self.repository = repository
         self.returnScheduler = returnScheduler
+        self.localDataExporter = localDataExporter ?? LocalDataExportUseCase(
+            repository: repository,
+            settingsStore: settingsStore,
+            clock: .live
+        )
+        self.exportDirectory = exportDirectory
         self.logger = logger
         self.settings = settingsStore.settings
         self.deletionMessage = deletionMessage
         self.isDeletingAllData = isDeletingAllData
+        self.exportFileURL = exportFileURL
+        self.exportMessage = exportMessage
+        self.isExportingData = isExportingData
         self.scheduleUpdateMessage = scheduleUpdateMessage
     }
 
@@ -84,6 +103,29 @@ final class SettingsModel {
         }
 
         isDeletingAllData = false
+    }
+
+    func prepareDataExport() async {
+        isExportingData = true
+        exportFileURL = nil
+        exportMessage = nil
+
+        do {
+            let file = try await localDataExporter.makeFile()
+            let url = exportDirectory.appendingPathComponent(file.filename)
+            try file.data.write(to: url, options: [.atomic])
+            exportFileURL = url
+            exportMessage = String(localized: "settings.export.ready")
+            logger.info("Local data export prepared", metadata: ["byteCount": String(file.data.count)])
+        } catch {
+            exportMessage = String(localized: "settings.export.failed")
+            logger.error(
+                "Local data export failed",
+                metadata: ["errorType": String(describing: type(of: error))]
+            )
+        }
+
+        isExportingData = false
     }
 
     private func saveSettingsAndRebuildNotifications() async {

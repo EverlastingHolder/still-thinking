@@ -78,9 +78,8 @@ struct ArchiveView: View {
                         Text(item.thought.text)
                             .lineLimit(2)
 
-                        HStack {
+                        VStack(alignment: .leading, spacing: 4) {
                             Label(item.thought.status.title, systemImage: item.thought.status.systemImage)
-                            Spacer()
                             Text(item.lastActivityAt.formatted(date: .abbreviated, time: .shortened))
                         }
                         .font(.caption)
@@ -164,4 +163,21 @@ private extension ThoughtStatus {
             makeTimelineModel: { _ in .preview(entries: []) }
         )
     }
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        ArchiveView(
+            model: .preview(
+                items: [
+                    .preview(
+                        text: "Compare both decisions after the conversation and notice which one still feels workable."
+                    )
+                ]
+            ),
+            makeTimelineModel: { _ in .preview(entries: [.previewThought(), .previewReflection()]) }
+        )
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }

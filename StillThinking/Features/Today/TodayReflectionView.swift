@@ -128,7 +128,7 @@ struct TodayReflectionView: View {
                     Text(action.title).tag(action)
                 }
             }
-            .pickerStyle(.segmented)
+            .pickerStyle(.menu)
 
             if model.selectedAction == .reschedule {
                 DatePicker(
@@ -191,4 +191,22 @@ private extension OpinionState {
     NavigationStack {
         TodayReflectionView(model: .preview(items: [.preview()]))
     }
+}
+
+#Preview("English AX") {
+    NavigationStack {
+        TodayReflectionView(
+            model: .preview(
+                items: [
+                    .preview(
+                        text: """
+                        Return to this question after the meeting and check whether the decision still feels honest.
+                        """
+                    )
+                ]
+            )
+        )
+    }
+    .environment(\.locale, Locale(identifier: "en"))
+    .dynamicTypeSize(.accessibility3)
 }

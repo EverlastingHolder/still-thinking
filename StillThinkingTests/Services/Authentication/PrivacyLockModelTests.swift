@@ -5,6 +5,7 @@
 //  Created by roman.moshkovcev on 06.07.2026.
 //
 
+import Foundation
 import Testing
 @testable import StillThinking
 
@@ -46,6 +47,32 @@ struct PrivacyLockModelTests {
         await model.unlock()
 
         #expect(model.state == .unlocked)
+    }
+
+    @Test("Биометрия получает локализованные причины")
+    func authenticationUsesLocalizedReasons() async {
+        var reasons: [String] = []
+        let store = AppSettingsStore(settings: {
+            var settings = AppSettings.default
+            settings.privacyLockEnabled = true
+            return settings
+        }())
+        let client = AuthenticationClient {
+            .available
+        } authenticate: { reason in
+            reasons.append(reason)
+            return true
+        }
+        let model = makeModel(store: store, client: client)
+
+        await model.setEnabled(true)
+        model.lockIfNeeded()
+        await model.unlock()
+
+        #expect(reasons == [
+            String(localized: "privacyLock.reason.enable"),
+            String(localized: "privacyLock.reason.unlock")
+        ])
     }
 
     private func makeModel(store: AppSettingsStore, client: AuthenticationClient) -> PrivacyLockModel {

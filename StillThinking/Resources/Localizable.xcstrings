@@ -55,6 +55,22 @@
         }
       }
     },
+    "common.exporting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporting"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт"
+          }
+        }
+      }
+    },
     "common.loading" : {
       "localizations" : {
         "en" : {
@@ -817,6 +833,22 @@
         }
       }
     },
+    "notifications.return.body" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have a thought to return to."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "У вас есть мысль для возвращения."
+          }
+        }
+      }
+    },
     "onboarding.button.next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1013,6 +1045,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не удалось подтвердить доступ. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "privacyLock.reason.enable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Still Thinking local lock"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Включить локальную блокировку Still Thinking"
+          }
+        }
+      }
+    },
+    "privacyLock.reason.unlock" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock Still Thinking"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разблокировать Still Thinking"
+          }
+        }
+      }
+    },
+    "privacyLock.unavailable.defaultReason" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biometrics are unavailable or not set up."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Биометрия недоступна или не настроена."
           }
         }
       }
@@ -1221,6 +1301,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Локальные данные удалены."
+          }
+        }
+      }
+    },
+    "settings.export.button" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export local data"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспортировать локальные данные"
+          }
+        }
+      }
+    },
+    "settings.export.failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not prepare export. Try again."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось подготовить экспорт. Попробуйте ещё раз."
+          }
+        }
+      }
+    },
+    "settings.export.ready" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export is ready to share."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт готов для отправки."
+          }
+        }
+      }
+    },
+    "settings.export.share" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share export"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поделиться экспортом"
           }
         }
       }

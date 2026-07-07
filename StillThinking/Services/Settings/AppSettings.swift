@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct AppSettings: Equatable, Sendable {
+struct AppSettings: Codable, Equatable, Sendable {
     var hasCompletedOnboarding: Bool
     var showsThoughtTextInNotifications: Bool
     var notificationStartHour: Int

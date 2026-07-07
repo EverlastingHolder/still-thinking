@@ -26,9 +26,22 @@ struct ReturnSchedulerTests {
         let storedSchedule = try #require(try await fixture.repository.schedules(for: thought.id).first)
 
         #expect(request.title == "Still Thinking")
-        #expect(request.body == "У вас есть мысль для возвращения.")
+        #expect(request.body == String(localized: "notifications.return.body"))
         #expect(request.body.contains(thought.text) == false)
         #expect(storedSchedule.notificationIdentifier == schedule.id.uuidString)
+    }
+
+    @Test("Планирование не пишет пользовательский текст в логи")
+    func schedulingDoesNotWriteUserContentToLogs() async throws {
+        let fixture = try makeFixture(notificationStatus: .authorized)
+        let thought = makeThought(text: "Секретная мысль")
+        let schedule = makeSchedule(thoughtID: thought.id)
+
+        try await fixture.repository.createThought(thought, schedule: schedule)
+        try await fixture.scheduler.schedule(schedule)
+
+        #expect(fixture.logs.events.isEmpty == false)
+        #expect(fixture.logs.containsUserContent("Секретная мысль") == false)
     }
 
     @Test("Denied permission не ломает сохранённое расписание")
@@ -133,6 +146,46 @@ struct ReturnSchedulerTests {
         #expect(fixture.notifications.cancelledIdentifiers == ["pending-overdue-notification"])
     }
 
+    @Test("Будущее расписание не возвращается при проверке системного времени")
+    func futureScheduleRemainsPendingDuringOverdueCheck() async throws {
+        let fixture = try makeFixture(notificationStatus: .authorized)
+        let thought = makeThought()
+        var schedule = makeSchedule(
+            thoughtID: thought.id,
+            dueAt: Date(timeIntervalSinceReferenceDate: 200)
+        )
+        schedule.notificationIdentifier = "future-notification"
+
+        try await fixture.repository.createThought(thought, schedule: schedule)
+        let returnedIDs = try await fixture.scheduler.markOverdueSchedulesReturned()
+
+        let storedThought = try #require(try await fixture.repository.thought(id: thought.id))
+        let storedSchedule = try #require(try await fixture.repository.schedules(for: thought.id).first)
+
+        #expect(returnedIDs.isEmpty)
+        #expect(storedThought.status == .pending)
+        #expect(storedSchedule.state == .scheduled)
+        #expect(storedSchedule.notificationIdentifier == "future-notification")
+        #expect(fixture.notifications.cancelledIdentifiers.isEmpty)
+    }
+
+    @Test("Восстановление пересоздаёт pending notification")
+    func rebuildPendingNotificationsReschedulesPendingNotification() async throws {
+        let fixture = try makeFixture(notificationStatus: .authorized)
+        let thought = makeThought()
+        var schedule = makeSchedule(thoughtID: thought.id)
+        schedule.notificationIdentifier = "old-notification"
+
+        try await fixture.repository.createThought(thought, schedule: schedule)
+        try await fixture.scheduler.rebuildPendingNotifications()
+
+        let storedSchedule = try #require(try await fixture.repository.schedules(for: thought.id).first)
+
+        #expect(fixture.notifications.cancelledIdentifiers == ["old-notification"])
+        #expect(fixture.notifications.scheduledRequests.map(\.identifier) == [schedule.id.uuidString])
+        #expect(storedSchedule.notificationIdentifier == schedule.id.uuidString)
+    }
+
     private func makeFixture(notificationStatus: NotificationAuthorizationStatus) throws -> Fixture {
         let container = try StillThinkingModelContainerFactory.inMemory()
         let recorder = RecordingLogSink()
@@ -156,13 +209,21 @@ struct ReturnSchedulerTests {
             logger: loggerFactory.makeLogger(for: .scheduling)
         )
 
-        return Fixture(repository: repository, scheduler: scheduler, notifications: notifications)
+        return Fixture(
+            repository: repository,
+            scheduler: scheduler,
+            notifications: notifications,
+            logs: recorder
+        )
     }
 
-    private func makeThought(status: ThoughtStatus = .pending) -> Thought {
+    private func makeThought(
+        text: String = "Приватная мысль",
+        status: ThoughtStatus = .pending
+    ) -> Thought {
         Thought(
             id: UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 1)),
-            text: "Приватная мысль",
+            text: text,
             status: status,
             createdAt: Date(timeIntervalSinceReferenceDate: 0),
             updatedAt: Date(timeIntervalSinceReferenceDate: 0)
@@ -188,5 +249,17 @@ struct ReturnSchedulerTests {
         let repository: SwiftDataThoughtRepository
         let scheduler: ReturnScheduler
         let notifications: RecordingNotificationClient
+        let logs: RecordingLogSink
+    }
+}
+
+private extension RecordingLogSink {
+    func containsUserContent(_ userContent: String) -> Bool {
+        events.contains { event in
+            event.message.contains(userContent) ||
+                event.metadata.values.contains { value in
+                    value.contains(userContent)
+                }
+        }
     }
 }
